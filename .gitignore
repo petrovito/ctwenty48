@@ -1,2 +1,9 @@
 .vscode/
 build/
+Debug/
+node_modules/
+yarn.lock
+.cache/
+graph_info.json
+
+
