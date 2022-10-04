@@ -17,18 +17,27 @@ namespace c20::commons {
 
 	struct MoveResultSegment 
 	{
-		Merge merges[TABLE_SIZE -1];
+		public:
+			Number new_segment[TABLE_SIZE];
+			
+			bool has_changed;
+			int before_non_zero = 0;
 
-		Number before_merge_segment[TABLE_SIZE];
-		Number after_merge_segment[TABLE_SIZE];
-		
-		bool has_changed;
+			MoveResultSegment(); 
+			void push_back(Number, int);
+			Number& operator[](int);
+		private:
+			Number current_merge_candidate = 0;
 	};
 
+	/**
+	 * Set of MoveResultSegment for all segments (along direction).
+	 */
 	struct MoveResultSet
 	{
 		MoveResultSegment segment_results[TABLE_SIZE];
 		bool has_changed;
+		MoveResultSegment& operator[](int);
 	};
 
 	enum GeneralDirection {
@@ -42,6 +51,7 @@ namespace c20::commons {
 		DOWN,
 		LEFT,
 		RIGHT,
+		NUM_DIRECTIONS=4
 	};
 
 
@@ -70,27 +80,48 @@ namespace c20::commons {
 		GAME_OVER,
 	};
 
-	struct MoveResult 
-	{
-		MoveResultType type;
-	};
-
 	class Position 
 	{
 		private:
-			Bitmap zero_bitmap;
+			//Bitmap zero_bitmap;
 			Number table[TABLE_SIZE][TABLE_SIZE];		
 
-			Position();
 			Position(MoveResultSet, MoveDirection);
 
-			MoveResultSet merges_along(MoveDirection);
-			MoveResultSet merges_along_at(MoveDirection);
+			/**
+			 * A segment is a row/column.
+			 * More precisely is a view of that, i.e. indexing might reversed
+			 * if direction is DOWN or RIGHT. 
+			 * See also: start_indices, deltas.
+			 */
+			MoveResultSegment calc_move_segment(MoveDirection, int);
+
+			/**
+			 * Calculates views for move along direction.
+			 */
+			MoveResultSet calc_move(MoveDirection);
+
+			/**
+			 * Returns entry from flattened version of table.
+			 */
+			Number& operator[](int);
 			friend class Game;
 		public:
+			Position();
 			const Number* get_table(); 
 	};
 
+
+	struct MoveResult 
+	{
+		MoveResultType type;
+		Position *new_pos;
+	};
+
+	class NumberPopper
+	{
+		//todo attributes: strategies, random? probs..
+	};
 
 	class Game 
 	{
@@ -98,6 +129,8 @@ namespace c20::commons {
 			Position positions[MAX_MOVES];
 			int current_pos_idx;
 			Position *current_pos;
+			NumberPopper popper;
+			
 		public:
 			Game();
 			Game(Position);
@@ -111,14 +144,13 @@ namespace c20::commons {
 	/********************** UTILS ***********************/
 
 
+	extern int start_indices[NUM_DIRECTIONS][TABLE_SIZE];
+	extern int deltas[NUM_DIRECTIONS];
+
+
+
 
 	GeneralDirection general(MoveDirection);
 
 }
-
-
-
-
-
-
 
