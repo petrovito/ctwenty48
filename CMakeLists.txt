@@ -4,7 +4,6 @@ project(ctwenty48 VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_COMPILER_VERSION 11)
-set_property(TARGET example PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 execute_process(COMMAND conan install ${PROJECT_SOURCE_DIR}
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -27,4 +26,6 @@ target_link_libraries(ctwenty48 PUBLIC CONAN_PKG::imgui)
 target_link_libraries(ctwenty48 PUBLIC CONAN_PKG::darknet)
 target_include_directories(ctwenty48 PUBLIC ${GTKMM_INCLUDE_DIRS})
 target_include_directories(ctwenty48 PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
+set_property(TARGET ctwenty48 PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 

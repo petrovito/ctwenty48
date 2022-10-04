@@ -1,7 +1,7 @@
 #include <iostream>
 #include <types.hh>
 #include <gtkmm.h>
-
+#include <darknet.h>
 
 /**
  * Main code

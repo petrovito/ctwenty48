@@ -9,7 +9,7 @@ namespace c20::commons {
 	}
 
 
-	Game::Game(Position pos) 
+	Game::Game(Position pos)
 	{
 		//todo
 	}
@@ -17,7 +17,9 @@ namespace c20::commons {
 
 	MoveResult Game::do_move(UserMove user_move) 
 	{
-		//todo
+		auto dir = user_move.direction;
+		auto effect = current_pos->merges_along(dir);
+		Position new_pos(effect, dir);
 	}
 
 
@@ -30,6 +32,16 @@ namespace c20::commons {
 	{
 		return GeneralDirection(direction >> 1);
 	}
+
+	int index_table[][TABLE_SIZE][TABLE_SIZE] = {
+		//UP
+		{
+			{1, 2, 3, 4},
+		},
+	};
+
+
+
 
 
 }

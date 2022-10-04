@@ -5,6 +5,7 @@
 
 #define MAX_NUMBERS 16
 #define MAX_MOVES 65536
+#define TABLE_SIZE 4
 
 
 namespace c20::commons {
@@ -14,23 +15,20 @@ namespace c20::commons {
 	typedef uint16_t Bitmap;
 	typedef Number Merge;
 
-	struct MergeSegment 
+	struct MoveResultSegment 
 	{
-		Merge first;
-		Merge middle;
-		Merge last;
-		bool saturated;
+		Merge merges[TABLE_SIZE -1];
+
+		Number before_merge_segment[TABLE_SIZE];
+		Number after_merge_segment[TABLE_SIZE];
+		
+		bool has_changed;
 	};
 
-	struct MergeSet
+	struct MoveResultSet
 	{
-		//todo
-	};
-
-	struct Position 
-	{
-		Bitmap zeros;
-		Bitmap numbers[MAX_NUMBERS];		
+		MoveResultSegment segment_results[TABLE_SIZE];
+		bool has_changed;
 	};
 
 	enum GeneralDirection {
@@ -53,12 +51,16 @@ namespace c20::commons {
 	};
 
 	
+	struct RandomPopup
+	{
+		Number random_value;
+		Bitmap random_pos;
+	};
 
 	struct EffectiveMove 
 	{
 		UserMove user_move;
-		Number random_value;
-		Bitmap random_pos;
+		RandomPopup random_popup;
 	};
 
 	enum MoveResultType 
@@ -72,6 +74,23 @@ namespace c20::commons {
 	{
 		MoveResultType type;
 	};
+
+	class Position 
+	{
+		private:
+			Bitmap zero_bitmap;
+			Number table[TABLE_SIZE][TABLE_SIZE];		
+
+			Position();
+			Position(MoveResultSet, MoveDirection);
+
+			MoveResultSet merges_along(MoveDirection);
+			MoveResultSet merges_along_at(MoveDirection);
+			friend class Game;
+		public:
+			const Number* get_table(); 
+	};
+
 
 	class Game 
 	{
