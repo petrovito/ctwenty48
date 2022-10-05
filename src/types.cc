@@ -1,5 +1,8 @@
+#include <boost/random/discrete_distribution.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 #include <types.hh>
 
+using boost::random::uniform_int_distribution;
 
 namespace c20::commons {
 
@@ -22,10 +25,17 @@ namespace c20::commons {
 	{
 		auto dir = user_move.direction;
 		auto effect = current_pos->calc_move(dir);
+		//calc new pos without Popup
 		if (!effect.has_changed) return MoveResult{.type=INVALID};
-		positions[++current_pos_idx] = Position(effect, dir);
+		auto new_pos = effect.calc_pos();
+		//add popup
+		if (new_pos.zeros.size()) {
+			PopPlacer placer{.pos=&new_pos.pos, .zeros=&new_pos.zeros,
+							 .popper=&popper};
+			placer.place_one();
+		}	
+		positions[++current_pos_idx] = new_pos.pos;
 		current_pos = positions + current_pos_idx;
-		//todo add popup
 		return MoveResult{SUCCES, current_pos};
 	}
 
@@ -78,21 +88,6 @@ namespace c20::commons {
 
 //start Position class
 
-	//Mostly inverse of calc_move segments. See comments there.
-	Position::Position(MoveResultSet move_result, MoveDirection dir)
-	{
-		auto delta = deltas[dir];
-		for (int segment = 0; segment < TABLE_SIZE; segment++)
-		{
-			auto idx = start_indices[dir][segment];
-			for (int view_idx = 0; view_idx < TABLE_SIZE; view_idx++) 
-			{
-				(*this)[idx] = move_result[segment][view_idx];	
-				idx += delta;
-			}
-		}
-	}
-
 	Number& Position::operator[](int index) 
 	{
 		return ((Number*)(table))[index];
@@ -121,7 +116,7 @@ namespace c20::commons {
 
 	MoveResultSet Position::calc_move(MoveDirection dir) 
 	{
-		MoveResultSet result;
+		MoveResultSet result{.dir=dir};
 		for (int segment = 0; segment < TABLE_SIZE; segment++)
 		{
 			auto segment_result = calc_move_segment(dir, segment);
@@ -131,8 +126,55 @@ namespace c20::commons {
 		return result;
 	}
 
+//PopPlacer class
+	
+	void PopPlacer::place_one() 
+	{
+		NumberIdxPop popped = popper->pop(zeros->size());
+		int table_idx = (*zeros)[popped.idx];
+		(*pos)[table_idx] = popped.value;
+	}
+
+
+//NumberPopper class
+
+	NumberPopper::NumberPopper(double four_weight) :
+		four_weight(four_weight),
+		value_dist(discrete_distribution<>{1, four_weight})
+	{ }
+
+	NumberIdxPop NumberPopper::pop(int num_zeros)
+	{
+		uniform_int_distribution<> uniform(0, num_zeros);
+		auto idx = uniform(gen);
+		auto value = Number(value_dist(gen));
+		return NumberIdxPop{value, idx};
+	}
+
 //start utils
 	
+	//Mostly inverse of calc_move segments. See comments there.
+	populate_result MoveResultSet::calc_pos()
+	{
+		populate_result result;
+		auto delta = deltas[dir];
+		for (int segment = 0; segment < TABLE_SIZE; segment++)
+		{
+			auto idx = start_indices[dir][segment];
+			for (int view_idx = 0; view_idx < TABLE_SIZE; view_idx++) 
+			{
+				Number num = (*this)[segment][view_idx];	
+				result.pos[idx] = num;
+				if (num == 0) 
+				{
+					result.zeros.push_back(num);
+				}
+				idx += delta;
+			}
+		}
+		return result;
+	}
+
 	/**
 	 * Start indices for (Direction, Segment pair)
 	 */

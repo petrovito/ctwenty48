@@ -3,7 +3,9 @@
 
 #include <boost/random/discrete_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
+#include <boost/container/static_vector.hpp>
 
+#include <boost/random/uniform_int_distribution.hpp>
 #include <cstdint>
 
 #define MAX_NUMBERS 16
@@ -13,12 +15,28 @@
 using boost::random::mt19937;
 using boost::random::discrete_distribution;
 
+
 namespace c20::commons {
 
 
 	typedef uint8_t Number;
 	typedef uint16_t Bitmap;
 	typedef Number Merge;
+
+	enum GeneralDirection {
+		VERTICAL,
+		HORIZONTAL,
+	};
+
+	enum MoveDirection 
+	{
+		UP,
+		DOWN,
+		LEFT,
+		RIGHT,
+		NUM_DIRECTIONS=4
+	};
+
 
 	struct MoveResultSegment 
 	{
@@ -35,6 +53,8 @@ namespace c20::commons {
 			Number current_merge_candidate = 0;
 	};
 
+	struct populate_result;
+
 	/**
 	 * Set of MoveResultSegment for all segments (along direction).
 	 */
@@ -42,23 +62,11 @@ namespace c20::commons {
 	{
 		MoveResultSegment segment_results[TABLE_SIZE];
 		bool has_changed;
+		MoveDirection dir;
 		MoveResultSegment& operator[](int);
-	};
 
-	enum GeneralDirection {
-		VERTICAL,
-		HORIZONTAL,
+		populate_result calc_pos();
 	};
-
-	enum MoveDirection 
-	{
-		UP,
-		DOWN,
-		LEFT,
-		RIGHT,
-		NUM_DIRECTIONS=4
-	};
-
 
 	struct UserMove 
 	{
@@ -89,10 +97,7 @@ namespace c20::commons {
 	{
 		private:
 			//Bitmap zero_bitmap;
-			int nnz;
 			Number table[TABLE_SIZE][TABLE_SIZE];		
-
-			Position(MoveResultSet, MoveDirection);
 
 			/**
 			 * A segment is a row/column.
@@ -110,11 +115,9 @@ namespace c20::commons {
 			/**
 			 * Returns entry from flattened version of table.
 			 */
-			Number& operator[](int);
 			friend class Game;
 		public:
-			int num_zeros();
-			Position();
+			Number& operator[](int);
 			const Number* get_table(); 
 	};
 
@@ -135,14 +138,23 @@ namespace c20::commons {
 	class NumberPopper
 	{
 		private:
-			int two_weight;//two_weight:1 chance of popping 2
+			double four_weight;//four_weight:1 chance of popping 2
 			mt19937 gen;
-			discrete_distribution<> dist;
-
-		//todo attributes: strategies, random? probs..
+			discrete_distribution<> value_dist;
 		public:
-			NumberPopper(int two_weight=3);
+			NumberPopper(double four_weight=.33);
 			NumberIdxPop pop(int num_zeros);
+	};
+
+	typedef boost::container::static_vector<int, TABLE_SIZE> ZeroIndices;
+
+	class PopPlacer
+	{
+		public:
+			Position *pos;
+			ZeroIndices *zeros;
+			NumberPopper *popper;
+			void place_one();
 	};
 
 	class Game 
@@ -164,6 +176,14 @@ namespace c20::commons {
 
 
 	/********************** UTILS ***********************/
+
+
+	struct populate_result
+	{
+		ZeroIndices zeros;
+		Position pos;
+	};
+
 
 
 	extern int start_indices[NUM_DIRECTIONS][TABLE_SIZE];
