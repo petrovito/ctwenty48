@@ -1,8 +1,7 @@
 #include <types.hh>
 
+
 namespace c20::commons {
-
-
 
 //start Game class
 

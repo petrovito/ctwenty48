@@ -2,6 +2,7 @@
 llvm-openmp/12.0.1
 imgui/1.88
 darknet/cci.20180914
+boost/1.80.0
 
 [generators]
 cmake

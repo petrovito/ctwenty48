@@ -1,12 +1,17 @@
 
 #pragma once
 
+#include <boost/random/discrete_distribution.hpp>
+#include <boost/random/mersenne_twister.hpp>
+
 #include <cstdint>
 
 #define MAX_NUMBERS 16
 #define MAX_MOVES 65536
 #define TABLE_SIZE 4
 
+using boost::random::mt19937;
+using boost::random::discrete_distribution;
 
 namespace c20::commons {
 
@@ -61,16 +66,16 @@ namespace c20::commons {
 	};
 
 	
-	struct RandomPopup
+	struct NumberPop
 	{
-		Number random_value;
-		Bitmap random_pos;
+		Number value;
+		Bitmap pos;
 	};
 
 	struct EffectiveMove 
 	{
 		UserMove user_move;
-		RandomPopup random_popup;
+		NumberPop random_popup;
 	};
 
 	enum MoveResultType 
@@ -84,6 +89,7 @@ namespace c20::commons {
 	{
 		private:
 			//Bitmap zero_bitmap;
+			int nnz;
 			Number table[TABLE_SIZE][TABLE_SIZE];		
 
 			Position(MoveResultSet, MoveDirection);
@@ -107,6 +113,7 @@ namespace c20::commons {
 			Number& operator[](int);
 			friend class Game;
 		public:
+			int num_zeros();
 			Position();
 			const Number* get_table(); 
 	};
@@ -118,9 +125,24 @@ namespace c20::commons {
 		Position *new_pos;
 	};
 
+	
+	struct NumberIdxPop
+	{
+		Number value;
+		int idx; //idx of zero entry, need to be converted to table-idx
+	};
+
 	class NumberPopper
 	{
+		private:
+			int two_weight;//two_weight:1 chance of popping 2
+			mt19937 gen;
+			discrete_distribution<> dist;
+
 		//todo attributes: strategies, random? probs..
+		public:
+			NumberPopper(int two_weight=3);
+			NumberIdxPop pop(int num_zeros);
 	};
 
 	class Game 

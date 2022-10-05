@@ -1,6 +1,5 @@
 #include <iostream>
 #include <types.hh>
-#include <gtkmm.h>
 #include <darknet.h>
 
 /**
@@ -12,11 +11,6 @@ int main(int argc, char** args) {
 	int z = x+y;
 	std::cout << z << std::endl;
 	std::cout << z << std::endl;
-}
-
-
-int other() {
-	main(1, NULL);
 }
 
 
