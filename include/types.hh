@@ -1,12 +1,14 @@
 
 #pragma once
 
+#include "gtest/gtest_prod.h"
 #include <boost/random/discrete_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/container/static_vector.hpp>
 
 #include <boost/random/uniform_int_distribution.hpp>
 #include <cstdint>
+#include <string>
 
 #define MAX_NUMBERS 16
 #define MAX_MOVES 65536
@@ -43,8 +45,8 @@ namespace c20::commons {
 		public:
 			Number new_segment[TABLE_SIZE];
 			
-			bool has_changed;
-			int before_non_zero = 0;
+			bool has_changed = false;
+			int non_zero = 0;
 
 			MoveResultSegment(); 
 			void push_back(Number, int);
@@ -65,7 +67,7 @@ namespace c20::commons {
 		MoveDirection dir;
 		MoveResultSegment& operator[](int);
 
-		populate_result calc_pos();
+		populate_result calc_pos_zeros_pair();
 	};
 
 	struct UserMove 
@@ -107,18 +109,21 @@ namespace c20::commons {
 			 */
 			MoveResultSegment calc_move_segment(MoveDirection, int);
 
+		public:
 			/**
 			 * Calculates views for move along direction.
 			 */
 			MoveResultSet calc_move(MoveDirection);
 
+			/** No more legal moves. */
+			bool is_over();
+
 			/**
 			 * Returns entry from flattened version of table.
 			 */
-			friend class Game;
-		public:
 			Number& operator[](int);
-			const Number* get_table(); 
+			Number& operator()(int,int);
+			static Position from_str(std::string&&);
 	};
 
 
@@ -146,7 +151,7 @@ namespace c20::commons {
 			NumberIdxPop pop(int num_zeros);
 	};
 
-	typedef boost::container::static_vector<int, TABLE_SIZE> ZeroIndices;
+	typedef boost::container::static_vector<int, TABLE_SIZE*TABLE_SIZE> ZeroIndices;
 
 	class PopPlacer
 	{

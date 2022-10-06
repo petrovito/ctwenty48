@@ -4,5 +4,7 @@ imgui/1.88
 darknet/cci.20180914
 boost/1.80.0
 
+gtest/cci.20210126
+
 [generators]
 cmake

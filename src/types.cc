@@ -2,6 +2,8 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <types.hh>
 
+#include <gtest/gtest_prod.h>
+
 using boost::random::uniform_int_distribution;
 
 namespace c20::commons {
@@ -27,7 +29,7 @@ namespace c20::commons {
 		auto effect = current_pos->calc_move(dir);
 		//calc new pos without Popup
 		if (!effect.has_changed) return MoveResult{.type=INVALID};
-		auto new_pos = effect.calc_pos();
+		auto new_pos = effect.calc_pos_zeros_pair();
 		//add popup
 		if (new_pos.zeros.size()) {
 			PopPlacer placer{.pos=&new_pos.pos, .zeros=&new_pos.zeros,
@@ -61,15 +63,15 @@ namespace c20::commons {
 	{
 		//set has_changed to true if num is changing idx or is merging
 		has_changed |= 
-			view_idx != before_non_zero || current_merge_candidate == num;
+			view_idx != non_zero || current_merge_candidate == num;
 		if (current_merge_candidate == num) //merge current num to last one 
 		{
-			new_segment[before_non_zero] = num +1; //increment merged entry
+			new_segment[non_zero -1] = num +1; //increment merged entry
 			current_merge_candidate = 0; //unset merge candidate
 		}
 		else
 		{
-			new_segment[before_non_zero++] = num; //append new entry
+			new_segment[non_zero++] = num; //append new entry
 			current_merge_candidate = num; //set merge candidate
 		}
 	}
@@ -91,6 +93,12 @@ namespace c20::commons {
 	Number& Position::operator[](int index) 
 	{
 		return ((Number*)(table))[index];
+	}
+
+
+	Number& Position::operator()(int row, int column) 
+	{
+		return table[row][column];
 	}
 
 	MoveResultSegment Position::calc_move_segment(MoveDirection dir, int segment) 
@@ -116,7 +124,7 @@ namespace c20::commons {
 
 	MoveResultSet Position::calc_move(MoveDirection dir) 
 	{
-		MoveResultSet result{.dir=dir};
+		MoveResultSet result{.has_changed=false, .dir=dir};
 		for (int segment = 0; segment < TABLE_SIZE; segment++)
 		{
 			auto segment_result = calc_move_segment(dir, segment);
@@ -125,6 +133,47 @@ namespace c20::commons {
 		}
 		return result;
 	}
+
+	bool Position::is_over()
+	{
+		//check for horizontal merge possibilities OR zeros
+		for (int i = 0; i < TABLE_SIZE; i++)
+		{
+			for (int j = 0; j < TABLE_SIZE -1; j++)
+			{
+				if (table[i][j] == table[i][j +1] || table[i][j] == 0) 
+					return false;
+			}
+			if (table[i][TABLE_SIZE -1] == 0) return false;
+		}
+		//check for vertical merge possibilities (not zeroes this time)
+		for (int i = 0; i < TABLE_SIZE; i++)
+		{
+			for (int j = 0; j < TABLE_SIZE -1; j++)
+			{
+				if (table[j][i] == table[j +1][i]) 
+					return false;
+			}
+		}
+		return true;
+	}
+	
+	Position Position::from_str(std::string &&table_str)
+	{
+		Position pos;
+		int col = 0;
+		int row = 0;
+		for (char const c: table_str)
+		{
+			if (c == '|') {
+				row++;
+				col=0;
+			}
+			else pos.table[row][col++] = c - '0';
+		}
+		return pos;
+	}
+
 
 //PopPlacer class
 	
@@ -145,16 +194,16 @@ namespace c20::commons {
 
 	NumberIdxPop NumberPopper::pop(int num_zeros)
 	{
-		uniform_int_distribution<> uniform(0, num_zeros);
+		uniform_int_distribution<> uniform(0, num_zeros -1);
 		auto idx = uniform(gen);
-		auto value = Number(value_dist(gen));
+		auto value = Number(value_dist(gen) +1);
 		return NumberIdxPop{value, idx};
 	}
 
 //start utils
 	
 	//Mostly inverse of calc_move segments. See comments there.
-	populate_result MoveResultSet::calc_pos()
+	populate_result MoveResultSet::calc_pos_zeros_pair()
 	{
 		populate_result result;
 		auto delta = deltas[dir];
@@ -167,7 +216,7 @@ namespace c20::commons {
 				result.pos[idx] = num;
 				if (num == 0) 
 				{
-					result.zeros.push_back(num);
+					result.zeros.push_back(idx);
 				}
 				idx += delta;
 			}
@@ -189,7 +238,7 @@ namespace c20::commons {
 	/**
 	 * Deltas for Direction.
 	 */
-	int deltas[] = { -4, 4, -1, 1 };
+	int deltas[] = { 4, -4, 1, -1 };
 
 
 
