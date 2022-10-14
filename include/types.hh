@@ -98,7 +98,6 @@ namespace c20::commons {
 	class Position 
 	{
 		private:
-			//Bitmap zero_bitmap;
 			Number table[TABLE_SIZE][TABLE_SIZE];		
 
 			/**
@@ -110,18 +109,15 @@ namespace c20::commons {
 			MoveResultSegment calc_move_segment(MoveDirection, int);
 
 		public:
-			/**
-			 * Calculates views for move along direction.
-			 */
+			/** Calculates views for move along direction. */
 			MoveResultSet calc_move(MoveDirection);
 
-			/** No more legal moves. */
+			/** Are there any more legal moves? */
 			bool is_over();
 
-			/**
-			 * Returns entry from flattened version of table.
-			 */
+			/** Returns entry from flattened version of table. */
 			Number& operator[](int);
+			/** Element from table. */
 			Number& operator()(int,int);
 			static Position from_str(std::string&&);
 	};
@@ -143,7 +139,7 @@ namespace c20::commons {
 	class NumberPopper
 	{
 		private:
-			double four_weight;//four_weight:1 chance of popping 2
+			double four_weight;//four_weight:1 chance of popping 4
 			mt19937 gen;
 			discrete_distribution<> value_dist;
 		public:

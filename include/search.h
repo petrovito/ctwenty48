@@ -2,6 +2,8 @@
 #include <array>
 #include <cnn.h>
 #include <cstdint>
+#include <utility>
+#include <vector>
 
 
 #define BIN_COUNT 16
@@ -14,22 +16,11 @@ namespace c20::search {
 	typedef double Probability;
 	typedef double Value;
 
-	struct Node
-	{
-		
-	};
 
-	struct UserNode : public Node 
-	{
-
-	};
-
-	struct RandomNode : public Node 
-	{
-
-	};
-
-	struct NodeDistibution
+	/**
+	 * Custom discrete distribution representation.
+	 */
+	struct NodeDistribution
 	{
 		Probability known_ending; //todo expand this
 		Probability bins[BIN_COUNT];
@@ -38,35 +29,95 @@ namespace c20::search {
 		Value standard_dev();
 		//todo other marks maybe..
 		// also maybe don't use any of these, but create CNN for this?
+
+		static NodeDistribution const_dist(Value);
 	};
 
-	struct UserNodeValueSet 
+	/**
+	 * Small wrapper around Position.
+	 */
+	struct Node
 	{
-		uint8_t valid_move_set;
-		std::array<NodeDistibution, NUM_DIRECTIONS> dists;
+		Position pos;
+		/** Distribution from CNN and calculated upward recursively. */
+		NodeDistribution distribution;
 	};
 
-	class UserNodeSelector
+	struct RandomNode;
+
+	/**
+	 * Node where User has to make a move.
+	 */
+	struct UserNode : public Node 
+	{
+		std::array<RandomNode*, NUM_DIRECTIONS> children;
+		/** Is game over at this node. */
+		bool is_over = false;
+		/** Is this a final node in calculating NodeDistribution? */
+		bool is_final = false;
+	};
+
+	/**
+	 * Node where Random has to make a move, ie. a number 
+	 * will be popped.
+	 */
+	struct RandomNode : public Node 
+	{
+		/** Distribution of children nodes. */
+		std::vector<std::pair<Probability, UserNode*>> children;
+	};
+
+
+	/** Class representing logic which Move to choose at UserNodes. */
+	class UserMoveSelector
 	{
 		public:
-			virtual MoveDirection choose(UserNodeValueSet);
+			virtual MoveDirection choose(UserNode);
 	};
 
-	struct RandomNodeResult 
-	{
+	/** Selects the best expected value. */
+	class ExpectedValueSelector : public UserMoveSelector
+	{ };
 
-	};
+	/** Selects random user move. */
+	class RandomSelector : public UserMoveSelector 
+	{ };
 
-
+	/** 
+	 * Creates a subgraph of the game starting from the current
+	 * position, passing it to the GraphEvaluator.
+	 */
 	class GraphSearcher 
 	{
-
+		public:
+			UserNode subgraph_of_depth(Position&, int);
 	};
 
 
+	/**
+	 * Wrapper around Distribution, containing numeric value.
+	 * PLUS:
+	 * Info on how good the evaluation is, i.e. how deep 
+	 * did the search go down, how precise it got calculated
+	 * etc.
+	 */
+	struct Evaluation
+	{
+		NodeDistribution dist;
+		Value eval;
+
+		int level_down;
+	};
+
+	/**
+	 * Evaluates graph nodes recursively, using the data 
+	 * from GrapSearcher and using NeuralEvaluator at final nodes.
+	 */
 	class GraphEvaluator
 	{
-
+		public:
+			MoveDirection pick_one();
+			Evaluation evaluate();
 	};
 
 	class SearchManager {
@@ -75,7 +126,8 @@ namespace c20::search {
 			GraphEvaluator *graph_evaluator;
 			cnn::NeuralEvaluator *cnn;
 		public:
-			void init(); void set_position(Position);
+			void init(); 
+			void set_position(Position);
 			void start_search();
 			void stop_search();
 	};
