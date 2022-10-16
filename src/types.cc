@@ -1,5 +1,7 @@
+#include <boost/container/static_vector.hpp>
 #include <boost/random/discrete_distribution.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
+#include <tuple>
 #include <types.hh>
 
 #include <gtest/gtest_prod.h>
@@ -29,14 +31,12 @@ namespace c20::commons {
 		auto effect = current_pos->calc_move(dir);
 		//calc new pos without Popup
 		if (!effect.has_changed) return MoveResult{.type=INVALID};
-		auto new_pos = effect.calc_pos_zeros_pair();
+		auto [new_pos, zeros] = effect.calc_pos_zeros_pair();
 		//add popup
-		if (new_pos.zeros.size()) {
-			PopPlacer placer{.pos=&new_pos.pos, .zeros=&new_pos.zeros,
-							 .popper=&popper};
-			placer.place_one();
+		if (zeros.size()) {
+			popper.place_one(new_pos, zeros);
 		}	
-		positions[++current_pos_idx] = new_pos.pos;
+		positions[++current_pos_idx] = new_pos;
 		current_pos = positions + current_pos_idx;
 		return MoveResult{SUCCES, current_pos};
 	}
@@ -157,6 +157,16 @@ namespace c20::commons {
 		}
 		return true;
 	}
+
+	int Position::num_zeros() 
+	{
+		int zeros = 0;
+		for (int i = 0; i < TABLE_SIZE*TABLE_SIZE; i++)
+		{
+			if ((*this)[i] == 0) zeros++;
+		}
+		return zeros;
+	}
 	
 	Position Position::from_str(std::string &&table_str)
 	{
@@ -175,22 +185,16 @@ namespace c20::commons {
 	}
 
 
-//PopPlacer class
-	
-	void PopPlacer::place_one() 
-	{
-		NumberIdxPop popped = popper->pop(zeros->size());
-		int table_idx = (*zeros)[popped.idx];
-		(*pos)[table_idx] = popped.value;
-	}
-
 
 //NumberPopper class
 
 	NumberPopper::NumberPopper(double four_weight) :
 		four_weight(four_weight),
 		value_dist(discrete_distribution<>{1, four_weight})
-	{ }
+	{ 
+		prob_two = two_weight / (two_weight + four_weight);
+		prob_four = four_weight / (two_weight + four_weight);
+	}
 
 	NumberIdxPop NumberPopper::pop(int num_zeros)
 	{
@@ -200,12 +204,45 @@ namespace c20::commons {
 		return NumberIdxPop{value, idx};
 	}
 
+	
+	void NumberPopper::place_one(Position& pos, ZeroIndices& zeros) 
+	{
+		NumberIdxPop popped = pop(zeros.size());
+		int table_idx = zeros[popped.idx];
+		pos[table_idx] = popped.value;
+	}
+
+	PositionDistribution NumberPopper::dist_from(
+			Position& pos, ZeroIndices& zeros)
+	{
+		int num_zeros = zeros.size();
+		Probability two_chance = prob_two / num_zeros;
+		Probability four_chance = prob_four / num_zeros;
+		PositionDistribution dist;
+		for (auto zero_idx: zeros)
+		{
+			//for (Number popped_num: {1,2})
+			{ //pop two
+				Position new_pos = pos; //copy original
+				new_pos[zero_idx] = 1;
+				dist.push_back({two_chance, new_pos});
+			}
+			{ //pop four
+				Position new_pos = pos; //copy original
+				new_pos[zero_idx] = 2;
+				dist.push_back({four_chance, new_pos});
+			}
+		}
+		return dist;
+	}
+
 //start utils
 	
 	//Mostly inverse of calc_move segments. See comments there.
-	populate_result MoveResultSet::calc_pos_zeros_pair()
+	std::tuple<Position, ZeroIndices>  MoveResultSet::calc_pos_zeros_pair()
 	{
-		populate_result result;
+		Position new_pos;
+		ZeroIndices zeros;
 		auto delta = deltas[dir];
 		for (int segment = 0; segment < TABLE_SIZE; segment++)
 		{
@@ -213,15 +250,15 @@ namespace c20::commons {
 			for (int view_idx = 0; view_idx < TABLE_SIZE; view_idx++) 
 			{
 				Number num = (*this)[segment][view_idx];	
-				result.pos[idx] = num;
+				new_pos[idx] = num;
 				if (num == 0) 
 				{
-					result.zeros.push_back(idx);
+					zeros.push_back(idx);
 				}
 				idx += delta;
 			}
 		}
-		return result;
+		return std::make_tuple(new_pos, zeros);
 	}
 
 	/**

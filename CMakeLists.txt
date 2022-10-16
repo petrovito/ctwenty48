@@ -20,6 +20,7 @@ conan_basic_setup(TARGETS)
 #CORE LIB
 add_library(ctwenty48_core STATIC 
 	src/types.cc
+	src/search.cc
 	)
 
 target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::llvm-openmp)

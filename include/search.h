@@ -1,4 +1,4 @@
-#include "types.hh"
+#include <types.hh>
 #include <array>
 #include <cnn.h>
 #include <cstdint>
@@ -13,7 +13,6 @@ namespace c20::search {
 
 	using namespace commons;
 
-	typedef double Probability;
 	typedef double Value;
 
 
@@ -41,6 +40,8 @@ namespace c20::search {
 		Position pos;
 		/** Distribution from CNN and calculated upward recursively. */
 		NodeDistribution distribution;
+
+		Node(Position);
 	};
 
 	struct RandomNode;
@@ -55,6 +56,8 @@ namespace c20::search {
 		bool is_over = false;
 		/** Is this a final node in calculating NodeDistribution? */
 		bool is_final = false;
+
+		UserNode(Position);
 	};
 
 	/**
@@ -63,8 +66,11 @@ namespace c20::search {
 	 */
 	struct RandomNode : public Node 
 	{
+		ZeroIndices zeros;
 		/** Distribution of children nodes. */
 		std::vector<std::pair<Probability, UserNode*>> children;
+
+		RandomNode(Position);
 	};
 
 
@@ -89,7 +95,16 @@ namespace c20::search {
 	 */
 	class GraphSearcher 
 	{
+		private:
+			NumberPopper popper;
+			RandomNode* random_node_recursive(Position, ZeroIndices&, int);
+			UserNode* user_node_recursive(Position, int);
 		public:
+			/** 
+			 * Find a subgraph from a given position and a given depth.
+			 * Returns a UserNode representing the supplied Position,
+			 * with the pointers to the children nodes.
+			 */
 			UserNode subgraph_of_depth(Position&, int);
 	};
 

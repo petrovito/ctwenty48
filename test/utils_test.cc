@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
+#include <numeric>
 #include <types.hh>
+#include <vector>
 
 namespace c20::commons {
 
@@ -23,18 +25,18 @@ namespace c20::commons {
 		pos = Position::from_str("0000|0000|1202|0000");
 		move_result = pos.calc_move(LEFT);
 		ASSERT_TRUE(move_result.has_changed);
-		auto pos_zeros = move_result.calc_pos_zeros_pair();
-		ASSERT_EQ(1, pos_zeros.pos[8]);
-		ASSERT_EQ(3, pos_zeros.pos[9]);
+		auto [new_pos, zeros] = move_result.calc_pos_zeros_pair();
+		ASSERT_EQ(1, new_pos[8]);
+		ASSERT_EQ(3, new_pos[9]);
 
 		pos = Position::from_str("1111|0000|0000|0000");
 		move_result = pos.calc_move(LEFT);
 		ASSERT_TRUE(move_result.has_changed);
-		pos_zeros = move_result.calc_pos_zeros_pair();
-		ASSERT_EQ(2, pos_zeros.pos[0]);
-		ASSERT_EQ(2, pos_zeros.pos[1]);
-		ASSERT_EQ(0, pos_zeros.pos[2]);
-		ASSERT_EQ(0, pos_zeros.pos[3]);
+		std::tie(new_pos, zeros) = move_result.calc_pos_zeros_pair();
+		ASSERT_EQ(2, new_pos[0]);
+		ASSERT_EQ(2, new_pos[1]);
+		ASSERT_EQ(0, new_pos[2]);
+		ASSERT_EQ(0, new_pos[3]);
 		
 		pos = Position::from_str("1234|0000|0000|0000");
 		move_result = pos.calc_move(LEFT);
@@ -56,8 +58,7 @@ namespace c20::commons {
 			ASSERT_TRUE(1 == popped.value || 2 == popped.value);
 		}
 		ZeroIndices zeros{4,5,6,7,8,9,10,11,12,13,14,15};
-		PopPlacer placer{.pos=&pos, .zeros=&zeros, .popper=&popper};
-		placer.place_one();
+		popper.place_one(pos, zeros);
 		
 		int changed_entries = 0;
 		for (int i = 4; i < 16; i++)
@@ -65,6 +66,22 @@ namespace c20::commons {
 			if (pos[i]) changed_entries++;
 		}
 		ASSERT_EQ(1, changed_entries);
+
+		//test dist from
+		pos = Position::from_str("1234|1234|1234|0000");
+		zeros = {12,13,14,15};
+		auto dist = popper.dist_from(pos, zeros);
+		ASSERT_EQ(8, dist.size());
+		Probability prob_pop_two = .75/4, prob_pop_four = .25/4;
+		for (auto [prob, new_pos]: dist) 
+		{
+			ASSERT_EQ(3, new_pos.num_zeros());
+			Number popped_val = 0;
+			for (int i = 12; i < 16; i++) popped_val += new_pos[i];
+			ASSERT_TRUE(popped_val == 1 || popped_val == 2);
+			if (popped_val == 1) ASSERT_NEAR(prob_pop_two, prob, 1e-5);
+			else ASSERT_NEAR(prob_pop_four, prob, 1e-5);
+		}
 	}	
 
 	TEST(PositionTest, IsOver)

@@ -9,6 +9,8 @@
 #include <boost/random/uniform_int_distribution.hpp>
 #include <cstdint>
 #include <string>
+#include <tuple>
+#include <utility>
 
 #define MAX_NUMBERS 16
 #define MAX_MOVES 65536
@@ -40,6 +42,9 @@ namespace c20::commons {
 	};
 
 
+	const static MoveDirection directions[] = {UP, DOWN, LEFT, RIGHT};
+
+
 	struct MoveResultSegment 
 	{
 		public:
@@ -55,7 +60,8 @@ namespace c20::commons {
 			Number current_merge_candidate = 0;
 	};
 
-	struct populate_result;
+	class Position;
+	typedef boost::container::static_vector<int, TABLE_SIZE*TABLE_SIZE> ZeroIndices;
 
 	/**
 	 * Set of MoveResultSegment for all segments (along direction).
@@ -67,7 +73,7 @@ namespace c20::commons {
 		MoveDirection dir;
 		MoveResultSegment& operator[](int);
 
-		populate_result calc_pos_zeros_pair();
+		std::tuple<Position, ZeroIndices> calc_pos_zeros_pair();
 	};
 
 	struct UserMove 
@@ -107,13 +113,14 @@ namespace c20::commons {
 			 * See also: start_indices, deltas.
 			 */
 			MoveResultSegment calc_move_segment(MoveDirection, int);
-
 		public:
 			/** Calculates views for move along direction. */
 			MoveResultSet calc_move(MoveDirection);
 
 			/** Are there any more legal moves? */
 			bool is_over();
+
+			int num_zeros();
 
 			/** Returns entry from flattened version of table. */
 			Number& operator[](int);
@@ -136,26 +143,32 @@ namespace c20::commons {
 		int idx; //idx of zero entry, need to be converted to table-idx
 	};
 
+
+	typedef double Probability;
+	using boost::container::static_vector;
+	/** 
+	 * Distribution of positions from a given Position where a random number 
+	 * is to be popped.
+	 */
+	typedef static_vector<std::pair<Probability, Position>, MAX_NUMBERS *2> 
+		PositionDistribution;
 	class NumberPopper
 	{
 		private:
+#define two_weight 1
 			double four_weight;//four_weight:1 chance of popping 4
 			mt19937 gen;
 			discrete_distribution<> value_dist;
-		public:
-			NumberPopper(double four_weight=.33);
+			Probability prob_two, prob_four;
+
 			NumberIdxPop pop(int num_zeros);
-	};
-
-	typedef boost::container::static_vector<int, TABLE_SIZE*TABLE_SIZE> ZeroIndices;
-
-	class PopPlacer
-	{
+			FRIEND_TEST(PositionTest, PopNumber);
 		public:
-			Position *pos;
-			ZeroIndices *zeros;
-			NumberPopper *popper;
-			void place_one();
+			NumberPopper(double four_weight=.3333333);
+			/** Places one random popped number on the given position. */
+			void place_one(Position&, ZeroIndices&);
+			/** Iterates over possible popped values and probabilites. */
+			PositionDistribution dist_from(Position&, ZeroIndices&);		
 	};
 
 	class Game 
@@ -177,13 +190,6 @@ namespace c20::commons {
 
 
 	/********************** UTILS ***********************/
-
-
-	struct populate_result
-	{
-		ZeroIndices zeros;
-		Position pos;
-	};
 
 
 
