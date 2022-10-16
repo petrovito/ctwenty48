@@ -1,3 +1,6 @@
+#pragma once
+
+#include <memory>
 #include <types.hh>
 #include <array>
 #include <cnn.h>
@@ -40,6 +43,10 @@ namespace c20::search {
 		Position pos;
 		/** Distribution from CNN and calculated upward recursively. */
 		NodeDistribution distribution;
+		/** Is game over at this node. */
+		bool is_over = false;
+		/** Is this a final node in calculating NodeDistribution? */
+		bool is_final = false;
 
 		Node(Position);
 	};
@@ -52,10 +59,6 @@ namespace c20::search {
 	struct UserNode : public Node 
 	{
 		std::array<RandomNode*, NUM_DIRECTIONS> children;
-		/** Is game over at this node. */
-		bool is_over = false;
-		/** Is this a final node in calculating NodeDistribution? */
-		bool is_final = false;
 
 		UserNode(Position);
 	};
@@ -89,6 +92,20 @@ namespace c20::search {
 	class RandomSelector : public UserMoveSelector 
 	{ };
 
+
+	class GameTree
+	{
+		public:
+			UserNode* root;
+			std::vector<std::unique_ptr<Node>> nodes;
+
+			GameTree() = default;
+			GameTree(const GameTree&) = delete;
+			GameTree(GameTree&&) = default;
+			GameTree& operator=(const GameTree&) = delete;
+			GameTree& operator=(GameTree&&) = default;
+	};
+
 	/** 
 	 * Creates a subgraph of the game starting from the current
 	 * position, passing it to the GraphEvaluator.
@@ -96,6 +113,7 @@ namespace c20::search {
 	class GraphSearcher 
 	{
 		private:
+			GameTree current_tree;
 			NumberPopper popper;
 			RandomNode* random_node_recursive(Position, ZeroIndices&, int);
 			UserNode* user_node_recursive(Position, int);
@@ -105,7 +123,8 @@ namespace c20::search {
 			 * Returns a UserNode representing the supplied Position,
 			 * with the pointers to the children nodes.
 			 */
-			UserNode subgraph_of_depth(Position&, int);
+			GameTree* subgraph_of_depth(Position&, int);
+			GraphSearcher(NumberPopper); //gets a copy
 	};
 
 

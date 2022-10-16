@@ -41,7 +41,10 @@ target_link_libraries(ctwenty48 PRIVATE ctwenty48_core)
 #TESTING
 include(GoogleTest)
 #utils
-add_executable(utils_test test/utils_test.cc)
-target_link_libraries(utils_test CONAN_PKG::gtest ctwenty48_core)
-gtest_discover_tests(utils_test)
+add_executable(unit_test 
+	test/utils_test.cc
+	test/search_test.cc
+	)
+target_link_libraries(unit_test CONAN_PKG::gtest ctwenty48_core)
+gtest_discover_tests(unit_test)
 
