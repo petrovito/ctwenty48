@@ -13,15 +13,16 @@ namespace c20::commons {
 //start Game class
 
 	Game::Game() :
-		current_pos_idx(0)
-	{
-		//todo
+		current_pos_idx(0), current_pos(positions)
+	{ 
+		positions[0] = Position();
 	}
 
 
-	Game::Game(Position pos)
+	Game::Game(Position&& pos) :
+		current_pos_idx(0), current_pos(positions)
 	{
-		//todo
+		positions[0] = pos;
 	}
 
 
@@ -52,12 +53,42 @@ namespace c20::commons {
 		return GeneralDirection(direction >> 1);
 	}
 
+	PositionIterator Game::history() 
+	{
+		return PositionIterator(positions, positions+current_pos_idx +1);
+	}
+
+
+	Game Game::start_game()
+	{
+		Game game;
+		game.popper.place_one(*game.current_pos);
+		game.popper.place_one(*game.current_pos);
+		return game;
+	}
+
+
+//start SquareIterator
+
+	const Number* SquareIterator::begin() { return _begin; }
+	const Number* SquareIterator::end() { return _end; }
+	SquareIterator::SquareIterator(const Number* begin, const Number* end) :
+		_begin(begin), _end(end) {}
+
+//start PositionIterator
+
+	const Position* PositionIterator::begin() { return _begin; }
+	const Position* PositionIterator::end() { return _end; }
+	PositionIterator::PositionIterator(const Position* begin, const Position* end) :
+		_begin(begin), _end(end) {}
+	size_t PositionIterator::size() { return _end-_begin; }
+
+
 //start MoveResultSegment class
 
 
 	MoveResultSegment::MoveResultSegment() :
-		new_segment()  
-	{}
+		new_segment()  {}
 
 	void MoveResultSegment::push_back(Number num, int view_idx) 
 	{
@@ -101,7 +132,7 @@ namespace c20::commons {
 		return table[row][column];
 	}
 
-	MoveResultSegment Position::calc_move_segment(MoveDirection dir, int segment) 
+	MoveResultSegment Position::calc_move_segment(MoveDirection dir, int segment) const
 	{
 		//get a view of the segment along the direction
 		//fx. along RIGHT view starts at right outermost entry 
@@ -112,7 +143,7 @@ namespace c20::commons {
 		//view_idx: idx of the entry in the segment wrt the view/direction
 		for (int view_idx = 0; view_idx < TABLE_SIZE; view_idx++) 
 		{
-			auto table_entry = (*this)[idx];	
+			auto table_entry = (*const_cast<Position*>(this))[idx];	
 			if (table_entry != 0)
 			{
 				result.push_back(table_entry, view_idx);
@@ -122,7 +153,7 @@ namespace c20::commons {
 		return result;
 	}
 
-	MoveResultSet Position::calc_move(MoveDirection dir) 
+	MoveResultSet Position::calc_move(MoveDirection dir) const 
 	{
 		MoveResultSet result{.has_changed=false, .dir=dir};
 		for (int segment = 0; segment < TABLE_SIZE; segment++)
@@ -134,7 +165,7 @@ namespace c20::commons {
 		return result;
 	}
 
-	bool Position::is_over()
+	bool Position::is_over() const
 	{
 		//check for horizontal merge possibilities OR zeros
 		for (int i = 0; i < TABLE_SIZE; i++)
@@ -158,12 +189,12 @@ namespace c20::commons {
 		return true;
 	}
 
-	int Position::num_zeros() 
+	int Position::num_zeros() const
 	{
 		int zeros = 0;
 		for (int i = 0; i < TABLE_SIZE*TABLE_SIZE; i++)
 		{
-			if ((*this)[i] == 0) zeros++;
+			if ((*const_cast<Position*>(this))[i] == 0) zeros++;
 		}
 		return zeros;
 	}
@@ -184,13 +215,18 @@ namespace c20::commons {
 		return pos;
 	}
 
+	SquareIterator Position::squares() const
+	{
+		return SquareIterator((Number*) table, (Number*) table + NUM_SQUARES);
+	}
 
 
 //NumberPopper class
 
 	NumberPopper::NumberPopper(double four_weight) :
 		four_weight(four_weight),
-		value_dist(discrete_distribution<>{1, four_weight})
+		value_dist(discrete_distribution<>{1, four_weight}),
+		gen(static_cast<std::uint32_t>(std::time(0)))
 	{ 
 		prob_two = two_weight / (two_weight + four_weight);
 		prob_four = four_weight / (two_weight + four_weight);
@@ -210,6 +246,16 @@ namespace c20::commons {
 		NumberIdxPop popped = pop(zeros.size());
 		int table_idx = zeros[popped.idx];
 		pos[table_idx] = popped.value;
+	}
+
+	void NumberPopper::place_one(Position& pos)
+	{
+		ZeroIndices zeros;
+		for (int i = 0; i < NUM_SQUARES; i++)
+		{
+			if (pos[i] == 0) zeros.push_back(i);
+		}
+		place_one(pos, zeros);
 	}
 
 	PositionDistribution NumberPopper::dist_from(

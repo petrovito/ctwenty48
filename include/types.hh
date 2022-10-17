@@ -15,6 +15,7 @@
 #define MAX_NUMBERS 16
 #define MAX_MOVES 65536
 #define TABLE_SIZE 4
+#define NUM_SQUARES TABLE_SIZE*TABLE_SIZE
 
 using boost::random::mt19937;
 using boost::random::discrete_distribution;
@@ -25,7 +26,6 @@ namespace c20::commons {
 
 	typedef uint8_t Number;
 	typedef uint16_t Bitmap;
-	typedef Number Merge;
 
 	enum GeneralDirection {
 		VERTICAL,
@@ -61,7 +61,7 @@ namespace c20::commons {
 	};
 
 	class Position;
-	typedef boost::container::static_vector<int, TABLE_SIZE*TABLE_SIZE> ZeroIndices;
+	typedef boost::container::static_vector<int, NUM_SQUARES> ZeroIndices;
 
 	/**
 	 * Set of MoveResultSegment for all segments (along direction).
@@ -81,24 +81,23 @@ namespace c20::commons {
 		MoveDirection direction;	
 	};
 
-	
-	struct NumberPop
-	{
-		Number value;
-		Bitmap pos;
-	};
-
-	struct EffectiveMove 
-	{
-		UserMove user_move;
-		NumberPop random_popup;
-	};
-
 	enum MoveResultType 
 	{
 		SUCCES,
 		INVALID,
 		GAME_OVER,
+	};
+
+	
+	class SquareIterator
+	{
+		private:
+			const Number* _begin;
+			const Number* _end;
+		public:
+			SquareIterator(const Number*, const Number*);
+			const Number* begin();
+			const Number* end();
 	};
 
 	class Position 
@@ -112,20 +111,21 @@ namespace c20::commons {
 			 * if direction is DOWN or RIGHT. 
 			 * See also: start_indices, deltas.
 			 */
-			MoveResultSegment calc_move_segment(MoveDirection, int);
+			MoveResultSegment calc_move_segment(MoveDirection, int) const;
 		public:
 			/** Calculates views for move along direction. */
-			MoveResultSet calc_move(MoveDirection);
+			MoveResultSet calc_move(MoveDirection) const;
 
 			/** Are there any more legal moves? */
-			bool is_over();
+			bool is_over() const;
 
-			int num_zeros();
+			int num_zeros() const;
 
 			/** Returns entry from flattened version of table. */
 			Number& operator[](int);
 			/** Element from table. */
 			Number& operator()(int,int);
+			SquareIterator squares() const;
 			static Position from_str(std::string&&);
 	};
 
@@ -168,8 +168,21 @@ namespace c20::commons {
 			NumberPopper(double four_weight=.3333333);
 			/** Places one random popped number on the given position. */
 			void place_one(Position&, ZeroIndices&);
+			void place_one(Position&);
 			/** Iterates over possible popped values and probabilites. */
 			PositionDistribution dist_from(Position&, ZeroIndices&);		
+	};
+
+	class PositionIterator
+	{
+		private:
+			const Position* _begin;
+			const Position* _end;
+		public:
+			PositionIterator(const Position*, const Position*);
+			const Position* begin();
+			const Position* end();
+			size_t size();
 	};
 
 	class Game 
@@ -182,9 +195,12 @@ namespace c20::commons {
 			
 		public:
 			Game();
-			Game(Position);
+			Game(Position&&);
 			const Position* current_position();
 			MoveResult do_move(UserMove);
+			PositionIterator history();
+
+			static Game start_game();
 	};
 
 
