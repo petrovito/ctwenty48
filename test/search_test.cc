@@ -4,7 +4,7 @@
 #include <vector>
 
 
-#include <search.h>
+#include <search.hh>
 #include <types.hh>
 
 namespace c20::search {

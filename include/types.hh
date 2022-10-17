@@ -145,6 +145,7 @@ namespace c20::commons {
 
 
 	typedef double Probability;
+	typedef double Value;
 	using boost::container::static_vector;
 	/** 
 	 * Distribution of positions from a given Position where a random number 

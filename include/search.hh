@@ -3,7 +3,7 @@
 #include <memory>
 #include <types.hh>
 #include <array>
-#include <cnn.h>
+#include <cnn.hh>
 #include <cstdint>
 #include <utility>
 #include <vector>
@@ -15,9 +15,6 @@
 namespace c20::search {
 
 	using namespace commons;
-
-	typedef double Value;
-
 
 	/**
 	 * Custom discrete distribution representation.
