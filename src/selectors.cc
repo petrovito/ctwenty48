@@ -8,7 +8,7 @@ namespace c20::selectors {
 
 	RandomSelector::RandomSelector() :
 		gen(static_cast<std::uint32_t>(std::time(0))),
-		uniform(0, NUM_DIRECTIONS)
+		uniform(0, NUM_DIRECTIONS -1)
 	{  }
 
 	UserMove RandomSelector::make_move()
@@ -16,9 +16,10 @@ namespace c20::selectors {
 		if (pos.is_over()) throw std::exception();
 		while (1)
 		{
-			MoveDirection random_dir = MoveDirection(uniform(gen));
+			int num = uniform(gen);
+			MoveDirection random_dir = MoveDirection(num);
 			auto result = pos.calc_move(random_dir);
-			if (result.has_changed) return make_move();
+			if (result.has_changed) return UserMove{random_dir};
 		}
 	}
 

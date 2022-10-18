@@ -46,6 +46,8 @@ add_library(ctwenty48_core STATIC
 	src/search.cc
 	src/cnn.cc
 	src/game_logger.cc
+	src/selectors.cc
+	src/game_play.cc
 	)
 
 #target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::llvm-openmp)
@@ -73,6 +75,7 @@ add_executable(unit_test
 	test/utils_test.cc
 	test/search_test.cc
 	test/csv_test.cc
+	test/selector_test.cc
 	)
 target_link_libraries(unit_test CONAN_PKG::gtest ctwenty48_core)
 gtest_discover_tests(unit_test)
