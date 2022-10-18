@@ -49,6 +49,8 @@ add_library(ctwenty48_core STATIC
 	src/selectors.cc
 	src/game_play.cc
 	src/ui.cc
+
+	src/env/environment.cc
 	)
 
 #target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::llvm-openmp)
@@ -65,7 +67,7 @@ set_property(TARGET ctwenty48_core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 
 #MAIN EXEC
-add_executable(ctwenty48 src/main.cc )
+add_executable(ctwenty48 src/env/main.cc )
 target_link_libraries(ctwenty48 PRIVATE ctwenty48_core)
 
 

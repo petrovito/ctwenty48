@@ -18,7 +18,7 @@ namespace c20::misc {
 			__gnu_cxx::stdio_filebuf<char> buffer;
 			std::ostream ostream;
 		public:
-			GameLogger(std::string&& path, bool append=true);
+			GameLogger(const std::string& path, bool append=true);
 			GameLogger(int _fd, bool append=true);
 			~GameLogger();
 			void log_game(Game&);

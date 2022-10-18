@@ -12,7 +12,7 @@ namespace c20::misc {
 
 
 
-	GameLogger::GameLogger(std::string&& path, bool append) :
+	GameLogger::GameLogger(const std::string& path, bool append) :
 		fd(fopen(path.c_str(), append ? "a" : "w")),
 		buffer(fd->_fileno, append ? std::ios_base::app : std::ios_base::out),
 		ostream(&buffer)
