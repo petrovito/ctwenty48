@@ -74,22 +74,6 @@ namespace c20::search {
 	};
 
 
-	/** Class representing logic which Move to choose at UserNodes. */
-	class UserMoveSelector
-	{
-		public:
-			virtual MoveDirection choose(UserNode);
-	};
-
-	/** Selects the best expected value. */
-	class ExpectedValueSelector : public UserMoveSelector
-	{ };
-
-	/** Selects random user move. */
-	class RandomSelector : public UserMoveSelector 
-	{ };
-
-
 	class GameTree
 	{
 		public:
