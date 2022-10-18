@@ -48,6 +48,7 @@ add_library(ctwenty48_core STATIC
 	src/game_logger.cc
 	src/selectors.cc
 	src/game_play.cc
+	src/ui.cc
 	)
 
 #target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::llvm-openmp)
