@@ -42,6 +42,10 @@ namespace c20::commons {
 		return MoveResult{SUCCES, current_pos};
 	}
 
+	bool Game::is_over()
+	{
+		return current_pos->is_over();
+	}
 
 	const Position* Game::current_position() 
 	{
@@ -59,11 +63,11 @@ namespace c20::commons {
 	}
 
 
-	Game Game::start_game()
+	Game* Game::start_game()
 	{
-		Game game;
-		game.popper.place_one(*game.current_pos);
-		game.popper.place_one(*game.current_pos);
+		Game *game = new Game();
+		game->popper.place_one(*game->current_pos);
+		game->popper.place_one(*game->current_pos);
 		return game;
 	}
 

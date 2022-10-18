@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+#include <memory>
 #include <types.hh>
 
 namespace c20::core {
@@ -12,8 +14,8 @@ namespace c20::core {
 		protected:
 			Position pos;
 		public:
-			virtual void set_position(Position&);
-			virtual UserMove make_move();
+			virtual void set_position(const Position&);
+			virtual UserMove make_move() = 0;
 	};
 
 	class GamePlayer;
@@ -23,8 +25,8 @@ namespace c20::core {
 		private:
 			GamePlayer *game_player;
 		public:
-			virtual void new_position(Position&);
-			virtual void game_over();
+			virtual void set_position(const Position&) = 0;
+			virtual void game_over() = 0;
 	};
 
 	
@@ -38,13 +40,25 @@ namespace c20::core {
 	class GamePlayer 
 	{
 		private:
-			Game game;
-			MoveSelector *move_selector;
-			UIHandler *ui;
-			State current_state;
+			std::unique_ptr<Game> current_game;
+			std::shared_ptr<MoveSelector> move_selector;
+			std::shared_ptr<UIHandler> ui;
+			std::atomic<State> current_state;
+
+			void set_position_for_handlers(const Position&);
 		public:
+			GamePlayer(std::shared_ptr<UIHandler>&, std::shared_ptr<MoveSelector>&);
 			/** Dumb stateless play one game method. */
-			Game play_a_game();
+			std::unique_ptr<Game> play_a_game();
+	};
+
+	class StateLocker
+	{
+		private:
+			std::atomic<State>& state;
+		public:
+			StateLocker(std::atomic<State>&);
+			~StateLocker();
 	};
 
 

@@ -198,9 +198,10 @@ namespace c20::commons {
 			Game(Position&&);
 			const Position* current_position();
 			MoveResult do_move(UserMove);
+			bool is_over();
 			PositionIterator history();
 
-			static Game start_game();
+			static Game* start_game();
 	};
 
 

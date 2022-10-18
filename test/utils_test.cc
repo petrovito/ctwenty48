@@ -98,8 +98,8 @@ namespace c20::commons {
 
 	TEST(PositionTest, StartGame)
 	{
-		Game game = Game::start_game();
-		ASSERT_EQ(NUM_SQUARES -2, game.current_position() -> num_zeros());
+		Game* game = Game::start_game();
+		ASSERT_EQ(NUM_SQUARES -2, game->current_position() -> num_zeros());
 	}
 	
 }
