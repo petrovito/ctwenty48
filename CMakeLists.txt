@@ -9,29 +9,6 @@ execute_process(COMMAND conan install ${PROJECT_SOURCE_DIR}
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
-# other deps
-include(FetchContent)
-FetchContent_Declare(
-  tiny-dnn
-  GIT_REPOSITORY https://github.com/tiny-dnn/tiny-dnn.git
-  GIT_TAG        v1.0.0a3
-)
-if (NOT tiny-dnn_POPULATED)
-	FetchContent_Populate(tiny-dnn)
-endif()
-
-FetchContent_Declare(
-  csv-parser
-  GIT_REPOSITORY https://github.com/vincentlaucsb/csv-parser.git
-  GIT_TAG        2.1.3
-)
-if (NOT csv_parser_POPULATED)
-	FetchContent_Populate(csv-parser)
-endif()
-#note these 2 above are header only libraries, no need to add cmake sub_dirs
-#just populate SOURCE_DIR variables useing FetchContent_Populate
-
-
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
@@ -56,10 +33,9 @@ add_library(ctwenty48_core STATIC
 #target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::llvm-openmp)
 target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::imgui)
 target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::boost)
-target_include_directories(ctwenty48_core PUBLIC ${CONAN_INCLUDE_DIRS_GTEST})
-target_include_directories(ctwenty48_core PUBLIC ${tiny-dnn_SOURCE_DIR})
-target_include_directories(ctwenty48_core PUBLIC ${csv-parser_SOURCE_DIR}/single_include)
+target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::csv-parser)
 
+target_include_directories(ctwenty48_core PUBLIC ${CONAN_INCLUDE_DIRS_GTEST})
 target_include_directories(ctwenty48_core PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 
@@ -73,7 +49,6 @@ target_link_libraries(ctwenty48 PRIVATE ctwenty48_core)
 
 #TESTING
 include(GoogleTest)
-#utils
 add_executable(unit_test 
 	test/utils_test.cc
 	test/search_test.cc
