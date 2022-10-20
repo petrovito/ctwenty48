@@ -34,6 +34,7 @@ add_library(ctwenty48_core STATIC
 target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::imgui)
 target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::boost)
 target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::csv-parser)
+target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::cppflow)
 
 target_include_directories(ctwenty48_core PUBLIC ${CONAN_INCLUDE_DIRS_GTEST})
 target_include_directories(ctwenty48_core PUBLIC ${PROJECT_SOURCE_DIR}/include)
