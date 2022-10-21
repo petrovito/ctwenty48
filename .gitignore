@@ -6,5 +6,6 @@ yarn.lock
 .cache/
 graph_info.json
 .gdb_history
-train_log_data/
+cnn/train_data/
+cnn/models/
 
