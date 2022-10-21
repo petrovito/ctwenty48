@@ -31,10 +31,12 @@ add_library(ctwenty48_core STATIC
 	)
 
 #target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::llvm-openmp)
-target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::imgui)
-target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::boost)
-target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::csv-parser)
-target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::cppflow)
+target_link_libraries(ctwenty48_core PUBLIC 
+	CONAN_PKG::imgui
+    CONAN_PKG::boost
+    CONAN_PKG::csv-parser
+    CONAN_PKG::cppflow
+	)
 
 target_include_directories(ctwenty48_core PUBLIC ${CONAN_INCLUDE_DIRS_GTEST})
 target_include_directories(ctwenty48_core PUBLIC ${PROJECT_SOURCE_DIR}/include)
@@ -55,6 +57,7 @@ add_executable(unit_test
 	test/search_test.cc
 	test/csv_test.cc
 	test/selector_test.cc
+	test/cnn_test.cc
 	)
 target_link_libraries(unit_test CONAN_PKG::gtest ctwenty48_core)
 gtest_discover_tests(unit_test)
