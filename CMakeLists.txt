@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.9.4) # this version enables LTO
 project(ctwenty48 VERSION 0.1.0)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+set(CMAKE_CXX_COMPILER_VERSION 11)
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
+
 enable_testing()
 
 # CONAN
@@ -8,13 +15,6 @@ execute_process(COMMAND conan install ${PROJECT_SOURCE_DIR}
 	)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
-
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-set(CMAKE_CXX_COMPILER_VERSION 11)
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-
 
 
 #CORE LIB

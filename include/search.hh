@@ -1,9 +1,9 @@
 #pragma once
 
+#include "game_play.hh"
 #include <memory>
 #include <types.hh>
 #include <array>
-#include <cnn.hh>
 #include <cstdint>
 #include <utility>
 #include <vector>
@@ -24,13 +24,33 @@ namespace c20::search {
 		Probability known_ending; //todo expand this
 		Probability bins[BIN_COUNT];
 
-		Value expected_value();
-		Value standard_dev();
+		//Value expected_value();
+		//Value standard_dev();
 		//todo other marks maybe..
 		// also maybe don't use any of these, but create CNN for this?
 
+		static int bin_num_from_val(Value);
 		static NodeDistribution const_dist(Value);
+		static const NodeDistribution const_over_dist;
 	};
+
+
+	/**
+	 * Wrapper around Distribution, containing numeric value.
+	 * PLUS:
+	 * Info on how good the evaluation is, i.e. how deep 
+	 * did the search go down, how precise it got calculated
+	 * etc.
+	 */
+	struct Evaluation
+	{
+		NodeDistribution dist;
+		Value value;
+
+		//int level_down;
+		void add_constituent(Probability, NodeDistribution&);
+	};
+
 
 	/**
 	 * Small wrapper around Position.
@@ -38,8 +58,6 @@ namespace c20::search {
 	struct Node
 	{
 		Position pos;
-		/** Distribution from CNN and calculated upward recursively. */
-		NodeDistribution distribution;
 		/** Is game over at this node. */
 		bool is_over = false;
 		/** Is this a final node in calculating NodeDistribution? */
@@ -55,6 +73,10 @@ namespace c20::search {
 	 */
 	struct UserNode : public Node 
 	{
+		/** Distribution from CNN and calculated upward recursively. */
+		NodeDistribution dist;
+		MoveDirection best_dir;
+
 		std::array<RandomNode*, NUM_DIRECTIONS> children;
 
 		UserNode(Position);
@@ -66,6 +88,8 @@ namespace c20::search {
 	 */
 	struct RandomNode : public Node 
 	{
+		Evaluation eval;
+	
 		ZeroIndices zeros;
 		/** Distribution of children nodes. */
 		std::vector<std::pair<Probability, UserNode*>> children;
@@ -109,19 +133,10 @@ namespace c20::search {
 	};
 
 
-	/**
-	 * Wrapper around Distribution, containing numeric value.
-	 * PLUS:
-	 * Info on how good the evaluation is, i.e. how deep 
-	 * did the search go down, how precise it got calculated
-	 * etc.
-	 */
-	struct Evaluation
+	class NodeEvaluator
 	{
-		NodeDistribution dist;
-		Value eval;
-
-		int level_down;
+		public:
+			virtual Value evaluate(Position&) = 0;
 	};
 
 	/**
@@ -130,17 +145,26 @@ namespace c20::search {
 	 */
 	class GraphEvaluator
 	{
+		private:
+			NodeEvaluator* node_eval;
+			NodeDistribution eval_usernode_recursive(UserNode*);
+			void eval_randomnode_recursive(RandomNode*);
+			/** Evaluate distribution, for coparison, and set member. */
+			Value eval_and_set(Evaluation&);
 		public:
-			MoveDirection pick_one();
-			Evaluation evaluate();
+			GraphEvaluator(NodeEvaluator*);
+			MoveDirection pick_one(GameTree*);
+			/** Evaluate GameTree nodes recursively. */
+			void evaluate(GameTree*);
 	};
 
-	class SearchManager {
+	class SearchManager : public core::MoveSelector {
 		private:
 			GraphSearcher *graph_searcher;
 			GraphEvaluator *graph_evaluator;
-			cnn::NeuralEvaluator *cnn;
+			NodeEvaluator *node_eval;
 		public:
+			virtual UserMove make_move();
 			void init(); 
 			void set_position(Position);
 			void start_search();
