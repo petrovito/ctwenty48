@@ -25,7 +25,6 @@ namespace c20::commons {
 
 
 	typedef uint8_t Number;
-	typedef uint16_t Bitmap;
 
 	enum GeneralDirection {
 		VERTICAL,

@@ -35,6 +35,7 @@ namespace c20::core {
 		ui->set_position(pos);
 		move_selector->set_position(pos);
 	}
+	
 
 	std::unique_ptr<Game> GamePlayer::play_a_game()
 	{

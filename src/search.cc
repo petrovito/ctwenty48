@@ -1,3 +1,4 @@
+#include "cnn.hh"
 #include <limits>
 #include <utility>
 
@@ -10,7 +11,7 @@ namespace c20::search {
 
 
 
-	UserNode::UserNode(Position pos) : Node(pos), children({}) {}
+	UserNode::UserNode(Position pos) : Node(pos), children({}), dist({}) {}
 	RandomNode::RandomNode(Position pos) : Node(pos), eval({}) {}
 	Node::Node(Position pos) : pos(pos), is_final(false), is_over(false) {}
 
@@ -177,6 +178,37 @@ namespace c20::search {
 	MoveDirection GraphEvaluator::pick_one(GameTree* game_tree)
 	{
 		return game_tree->root->best_dir;
+	}
+
+#include <iostream>
+	using namespace std;
+//SearchManager class
+	
+	SearchManager::SearchManager(NodeEvaluator* _node_eval,
+			NumberPopper _popper) : 
+		graph_searcher(new GraphSearcher(_popper)), 
+		graph_evaluator(new GraphEvaluator(_node_eval)),
+		node_eval(_node_eval) {  }
+
+	UserMove SearchManager::make_move()
+	{
+		int num_zeros = pos.num_zeros();
+		int depth = 1;
+		if (num_zeros < 8) depth = 2;
+		if (num_zeros < 4) depth = 3;
+		if (num_zeros < 2) depth = 4;
+
+		for (int i = 0; i < 16; i++) {
+			if (i %4 ==0) cout << '|';
+			cout <<int(pos[i]);
+		}
+
+		auto tree = graph_searcher->subgraph_of_depth(pos, depth);
+		graph_evaluator->evaluate(tree);
+		auto dir = graph_evaluator->pick_one(tree);
+		cout << "   " << tree->nodes.size();
+		cout << endl;
+		return UserMove{dir};
 	}
 
 

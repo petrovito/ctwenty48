@@ -10,12 +10,12 @@ namespace c20::core {
 	 */
 	class Environment
 	{
-		private:
+		public:
 			std::shared_ptr<MoveSelector> move_selector;
 			std::shared_ptr<UIHandler> ui;
 			std::shared_ptr<GamePlayer> game_player;
 		public:
-			Environment();
+			//Environment();
 			void play_games_and_quit(int num_games, const std::string& path);
 	};
 

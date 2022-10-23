@@ -8,12 +8,6 @@
 
 namespace c20::core {
 
-	Environment::Environment() :
-		move_selector(new selectors::RandomSelector()),
-		ui(new ui::NoopUI()),
-		game_player(new GamePlayer(ui, move_selector))
-	{}
-
 	void Environment::play_games_and_quit(int num_games, const std::string& path)
 	{
 		std::unique_ptr<misc::GameLogger> logger(path.empty() ?

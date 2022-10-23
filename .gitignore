@@ -1,11 +1,12 @@
 .vscode/
 build/
 Debug/
+Release/
 node_modules/
 yarn.lock
 .cache/
 graph_info.json
 .gdb_history
-cnn/train_data/
-cnn/models/
+cnn/
+perf.data*
 

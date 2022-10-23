@@ -37,7 +37,7 @@ namespace c20::misc {
 		auto pos = iterator.begin();
 		for (int i = 0; i < iterator.size(); i++, pos++)
 		{
-			std::vector<Number> row;
+			std::vector<int> row;
 			//append position table
 			for (auto num: pos->squares())
 			{

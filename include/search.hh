@@ -164,6 +164,7 @@ namespace c20::search {
 			GraphEvaluator *graph_evaluator;
 			NodeEvaluator *node_eval;
 		public:
+			SearchManager(NodeEvaluator*, NumberPopper);
 			virtual UserMove make_move();
 			void init(); 
 			void set_position(Position);
