@@ -64,6 +64,7 @@ namespace c20::search {
 		bool is_final = false;
 
 		Node(Position);
+		virtual ~Node() = default;
 	};
 
 	struct RandomNode;
@@ -80,6 +81,7 @@ namespace c20::search {
 		std::array<RandomNode*, NUM_DIRECTIONS> children;
 
 		UserNode(Position);
+		virtual ~UserNode() = default;
 	};
 
 	/**
@@ -95,6 +97,7 @@ namespace c20::search {
 		std::vector<std::pair<Probability, UserNode*>> children;
 
 		RandomNode(Position);
+		virtual ~RandomNode() = default;
 	};
 
 

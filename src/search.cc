@@ -144,10 +144,10 @@ namespace c20::search {
 			if (num_zeros < 3) depth = 4;
 		}
 
-		for (int i = 0; i < 16; i++) {
-			if (i %4 ==0) cout << '|';
-			cout <<int(pos[i]);
-		}
+		/* for (int i = 0; i < 16; i++) { */
+		/* 	if (i %4 ==0) cout << '|'; */
+		/* 	cout <<int(pos[i]); */
+		/* } */
 
 		GameTree* tree; 
 
@@ -156,13 +156,13 @@ namespace c20::search {
 			{ final_nodes.push_back(final_node); };
 
 		tree = graph_searcher->subgraph_of_depth(pos, depth, final_node_action);
+
+		/* cout << "   " << tree->nodes.size() << "   " << endl; */
 		
 		node_eval->batch_evaluate(final_nodes);
 
 		graph_evaluator->evaluate(tree);
 		auto dir = graph_evaluator->pick_one(tree);
-		cout << "   " << tree->nodes.size() << "   ";
-		cout << endl;
 		return UserMove{dir};
 	}
 
