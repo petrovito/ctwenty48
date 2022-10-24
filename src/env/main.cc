@@ -22,6 +22,7 @@ int main(int argc, char** args) {
 		("random", "random games")
 		("num", po::value<int>()->default_value(1), "number of games to play")
 		("log-path", po::value<string>()->default_value("/dev/stdout"), "game logs path")
+		("model-path", po::value<string>()->default_value("cnn/models/v1"), "model path")
 		;
 
 	po::variables_map vm;
@@ -39,7 +40,8 @@ int main(int argc, char** args) {
 
 	if (!vm.count("random")) 
 	{
-		c20::search::NodeEvaluator* node_eval = c20::cnn::NeuralEvaluator::load_from("cnn/models/v1");
+		c20::search::NodeEvaluator* node_eval =
+			c20::cnn::NeuralEvaluator::load_from(vm["model-path"].as<string>());
 		c20::commons::NumberPopper popper;
 		move_selector.reset(new c20::search::SearchManager(node_eval, popper));
 		ui.reset(new c20::ui::NoopUI());

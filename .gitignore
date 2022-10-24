@@ -7,6 +7,7 @@ yarn.lock
 .cache/
 graph_info.json
 .gdb_history
-cnn/
+cnn/models/
+cnn/train_data/
 perf.data*
-
+valgrind/
