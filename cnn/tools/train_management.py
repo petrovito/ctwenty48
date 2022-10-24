@@ -7,6 +7,8 @@ import logging
 import subprocess
 from typing import Tuple
 
+import math
+
 import keras
 import numpy as np
 import pandas as pd
@@ -36,6 +38,8 @@ def get_parser() -> argparse.ArgumentParser:
             default=default_cnn_dir + "models/v1")
     new_model_parser.add_argument('--input-csv-path', type=str, 
             default=default_train_data_dir + "train_it_0.csv")
+    new_model_parser.add_argument('--model-version', type=str, 
+            default='mv1')
     new_model_parser.set_defaults(func=new_model_from_csv_entrypoint)
 
     train_model_parser = subparsers.add_parser('train-model')
@@ -89,17 +93,33 @@ def play_games(ctwenty_bin: str, random: bool, num_games: str,
     logging.info('Running games is done.')
 
 
-def create_model() -> keras.Model:
-    input = keras.Input(shape=(16,))
-    internal_1 = layers.Dense(64, activation=tf.nn.relu)(input)
-    internal_2 = layers.Dense(48, activation=tf.nn.relu)(internal_1)
-    output = layers.Dense(1, activation=tf.nn.sigmoid)(internal_2)
-    
-    model = keras.Model(inputs=input, outputs=output)
-    model.compile(optimizer=keras.optimizers.SGD(),
-                  loss=keras.losses.MeanSquaredError())
-    logging.info('Model compiled.')
-    return model
+def create_model(version="mv1") -> keras.Model:
+    if version == 'mv1':
+        input = keras.Input(shape=(16,))
+        internal_1 = layers.Dense(64, activation=tf.nn.relu)(input)
+        internal_2 = layers.Dense(48, activation=tf.nn.relu)(internal_1)
+        output = layers.Dense(1, activation=tf.nn.sigmoid)(internal_2)
+        
+        model = keras.Model(inputs=input, outputs=output)
+        model.compile(optimizer=keras.optimizers.SGD(),
+                      loss=keras.losses.MeanSquaredError())
+        logging.info('Model compiled.')
+        return model
+    elif version == 'mv2':
+        input = keras.Input(shape=(16,))
+        x = layers.Dense(64, activation=tf.nn.relu)(input)
+        x = layers.Dropout(0.1)(x)
+        x = layers.Dense(128, activation=tf.nn.relu)(x)
+        x = layers.Dropout(0.1)(x)
+        x = layers.Dense(96, activation=tf.nn.relu)(x)
+        output = layers.Dense(1, activation=tf.nn.sigmoid)(x)
+        
+        model = keras.Model(inputs=input, outputs=output)
+        model.compile(optimizer=keras.optimizers.SGD(),
+                      loss=keras.losses.BinaryCrossentropy())
+        logging.info('Model compiled.')
+        return model
+    raise Exception("Unknown version: " + str(version))
 
 
 def train_model(model: keras.Model, x: np.array, y: np.array):
@@ -113,7 +133,8 @@ def train_model(model: keras.Model, x: np.array, y: np.array):
     logging.info('Start fitting model.')
     model.fit(x=train_x, y=train_y,
               batch_size=512,
-              epochs=25,
+              epochs=10,
+              shuffle=True,
               validation_data=(test_x, test_y))
     logging.info('Model fitted.')
 
@@ -130,7 +151,7 @@ def np_array_from_csv(input_csv_path: str) -> Tuple[np.array, np.array]:
     return np.array(x), np.array(y)
 
 
-def new_model_from_csv(model_path: str, input_csv_path: str):
+def new_model_from_csv(model_path: str, input_csv_path: str, model_version: str):
     """
     Creates new model from scratch, and trains it on the data
     from the passed CSV file.
@@ -138,7 +159,7 @@ def new_model_from_csv(model_path: str, input_csv_path: str):
     logging.info('create new model from {} at {}'
             .format(input_csv_path, model_path))
     x, y = np_array_from_csv(input_csv_path)
-    model = create_model()
+    model = create_model(model_version)
     train_model(model, np.array(x), np.array(y))
     save_model(model, model_path)
 
@@ -170,6 +191,8 @@ def transform_game_log(game_log_path: str, dataset_path: str,
         num_rows = transform_vv1(game_log_path, dataset_path)
     elif version == 'vv2':
         num_rows = transform_vv2(game_log_path, dataset_path)
+    elif version == 'vv3':
+        num_rows = transform_vv3(game_log_path, dataset_path)
     else:
         raise Exception("Unknown version: " + version)
     logging.info("Wrote {} transformed lines".format(num_rows))
@@ -196,6 +219,23 @@ def transform_vv1(game_log_path: str, dataset_path: str):
 
 
 def transform_vv2(game_log_path: str, dataset_path: str):
+    out_rows = []
+    cutoff = 100
+    with open(game_log_path) as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for row in csv_reader:
+            out_row = []
+            out_row.extend(row[:16])
+            out_row.append(min(cutoff, int(row[-2])) / cutoff)
+            out_rows.append(out_row)
+    with open(dataset_path, "w") as out_csv_file:
+        csv_writer = csv.writer(out_csv_file)
+        for out_row in out_rows:
+            csv_writer.writerow(out_row)
+    return len(out_rows)
+  
+
+def transform_vv3(game_log_path: str, dataset_path: str):
     in_rows = []
     max_game_length = -1
     with open(game_log_path) as csv_file:
@@ -206,22 +246,22 @@ def transform_vv2(game_log_path: str, dataset_path: str):
                 in_row.append(int(row_elem))
             max_game_length = max(max_game_length, in_row[-1])
             in_rows.append(in_row)
-    cutoff_start = 200
-    cutoff_middle = 50
+            
+    log_max = math.log(max_game_length)
+    linear_cutoff = 120
+    cutoff_multiplier = math.log(linear_cutoff) / log_max / linear_cutoff
+
     out_row_count = 0
     with open(dataset_path, "w") as out_csv_file:
         csv_writer = csv.writer(out_csv_file)
         for in_row in in_rows:
-            if in_row[-1] < cutoff_start: continue
-            if in_row[-2] > cutoff_start: continue
-
             out_row = [_ for _ in in_row[:16]]
-            base_value = in_row[-1] / max_game_length
+            remaining_moves = in_row[-2]
 
-            if in_row[-2] > cutoff_middle:
-                out_row.append(base_value)    
+            if remaining_moves > linear_cutoff:
+                out_row.append(math.log(remaining_moves) / log_max)
             else:
-                out_row.append(base_value * (in_row[-2] / cutoff_middle))
+                out_row.append(remaining_moves * cutoff_multiplier)
 
             csv_writer.writerow(out_row)
             out_row_count += 1
@@ -236,7 +276,7 @@ def transform_game_log_entrypoint(args):
 
 
 def new_model_from_csv_entrypoint(args):
-    new_model_from_csv(args.model_path, args.input_csv_path)
+    new_model_from_csv(args.model_path, args.input_csv_path, args.model_version)
 
 
 def run_games_entrypoint(args):

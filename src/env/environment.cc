@@ -17,7 +17,8 @@ namespace c20::core {
 		{
 			auto game = game_player->play_a_game();
 			if (logger.get()) logger->log_game(*game);
-			std::cout << "Game " << i << " is played." << std::endl;
+			std::cout << "Game " << i << " is played. Moves: " <<
+				game->history().size() << std::endl;
 		}
 	}
 
