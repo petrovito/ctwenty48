@@ -5,6 +5,7 @@
 
 #include <types.hh>
 #include <search.hh>
+#include <vector>
 
 
 namespace c20::search {
@@ -20,61 +21,6 @@ namespace c20::search {
 
 
 
-	GameTree* GraphSearcher::subgraph_of_depth(Position& pos, int depth)
-	{
-		current_tree = GameTree();
-		current_tree.root = user_node_recursive(pos, depth);
-		return &current_tree;
-	}
-
-
-
-	UserNode* GraphSearcher::user_node_recursive(Position pos, int depth) 
-	{
-		auto start_node = new UserNode(pos);
-		current_tree.nodes.emplace_back(start_node);
-		if (pos.is_over()) //special case of game_over nodes
-		{
-			start_node->is_over = true;
-			start_node->is_final = true;
-			return start_node;
-		}
-		if (depth == 0) // stop recursion at depth 1
-		{
-			start_node->is_final = true;
-			return start_node;
-		}
-		for (auto dir: directions)
-		{
-			auto effect = pos.calc_move(dir);
-			if (effect.has_changed) 
-			{
-				auto [new_pos, zeros] = 
-					effect.calc_pos_zeros_pair();
-				start_node->children[dir] = 
-					random_node_recursive(new_pos, zeros, depth);
-			} 
-			else //illegal direction 
-			{
-				start_node->children[dir] = nullptr;
-			}
-		}
-		return start_node;
-	}
-
-
-	RandomNode* GraphSearcher::random_node_recursive(
-			Position pos, ZeroIndices& zeros, int depth)
-	{
-		auto random_node = new RandomNode(pos);
-		current_tree.nodes.emplace_back(random_node);
-		for (auto [prob, child_pos]: popper.dist_from(pos, zeros))
-		{
-			random_node->children.push_back({prob,
-					user_node_recursive(child_pos, depth -1)});
-		}
-		return random_node;
-	}
 
 
 
@@ -112,9 +58,6 @@ namespace c20::search {
 
 //GraphEvaluator class
 
-	GraphEvaluator::GraphEvaluator(NodeEvaluator* _node_eval) :
-		node_eval(_node_eval) {}
-
 
 	NodeDistribution GraphEvaluator::eval_usernode_recursive(UserNode* user_node)
 	{
@@ -122,8 +65,8 @@ namespace c20::search {
 		if (user_node->is_over) //game over node, worst possible evaluation
 			return user_node->dist = NodeDistribution::const_over_dist;
 		if (user_node->is_final) // final in the given game tree (but not game over)
-			return user_node->dist =
-				NodeDistribution::const_dist(node_eval->evaluate(user_node->pos));
+			return user_node->dist;
+				/* NodeDistribution::const_dist(node_eval->evaluate(user_node->pos)); */
 		
 		//intermediate nodes: need to recurse
 		for (auto child_node: user_node->children)
@@ -187,26 +130,38 @@ namespace c20::search {
 	SearchManager::SearchManager(NodeEvaluator* _node_eval,
 			NumberPopper _popper) : 
 		graph_searcher(new GraphSearcher(_popper)), 
-		graph_evaluator(new GraphEvaluator(_node_eval)),
+		graph_evaluator(new GraphEvaluator()),
 		node_eval(_node_eval) {  }
 
 	UserMove SearchManager::make_move()
 	{
 		int num_zeros = pos.num_zeros();
 		int depth = 1;
-		if (num_zeros < 8) depth = 2;
-		if (num_zeros < 4) depth = 3;
-		if (num_zeros < 2) depth = 4;
+		if (num_zeros < 12) depth = 2;
+		if (num_zeros < 5) depth = 3;
+		if (pos.power_sum() > 512) 
+		{
+			if (num_zeros < 3) depth = 4;
+		}
 
 		for (int i = 0; i < 16; i++) {
 			if (i %4 ==0) cout << '|';
 			cout <<int(pos[i]);
 		}
 
-		auto tree = graph_searcher->subgraph_of_depth(pos, depth);
+		GameTree* tree; 
+
+		final_nodes = std::vector<UserNode*>();
+		auto final_node_action = [&] (UserNode* final_node) mutable
+			{ final_nodes.push_back(final_node); };
+
+		tree = graph_searcher->subgraph_of_depth(pos, depth, final_node_action);
+		
+		node_eval->batch_evaluate(final_nodes);
+
 		graph_evaluator->evaluate(tree);
 		auto dir = graph_evaluator->pick_one(tree);
-		cout << "   " << tree->nodes.size();
+		cout << "   " << tree->nodes.size() << "   ";
 		cout << endl;
 		return UserMove{dir};
 	}

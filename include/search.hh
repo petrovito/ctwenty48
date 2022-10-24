@@ -9,7 +9,7 @@
 #include <vector>
 
 
-#define BIN_COUNT 16
+#define BIN_COUNT 32
 // todo maybe not as macro? but runtime variable?
 
 namespace c20::search {
@@ -120,16 +120,72 @@ namespace c20::search {
 		private:
 			GameTree current_tree;
 			NumberPopper popper;
-			RandomNode* random_node_recursive(Position, ZeroIndices&, int);
-			UserNode* user_node_recursive(Position, int);
+
+
+			template<typename Callable>
+			RandomNode* random_node_recursive(
+				Position pos, ZeroIndices& zeros, int depth, Callable&& callable)
+			{
+				auto random_node = new RandomNode(pos);
+				current_tree.nodes.emplace_back(random_node);
+				for (auto [prob, child_pos]: popper.dist_from(pos, zeros))
+				{
+					random_node->children.push_back({prob,
+							user_node_recursive(child_pos, depth -1, callable)});
+				}
+				return random_node;
+			}
+
+
+			template<typename Callable>
+			UserNode* user_node_recursive( Position pos, int depth, Callable&& callable) 
+			{
+				auto start_node = new UserNode(pos);
+				current_tree.nodes.emplace_back(start_node);
+				if (pos.is_over()) //special case of game_over nodes
+				{
+					start_node->is_over = true;
+					start_node->is_final = true;
+					callable(start_node);
+					return start_node;
+				}
+				if (depth == 0) // stop recursion at depth 1
+				{
+					start_node->is_final = true;
+					callable(start_node);
+					return start_node;
+				}
+				for (auto dir: directions)
+				{
+					auto effect = pos.calc_move(dir);
+					if (effect.has_changed) 
+					{
+						auto [new_pos, zeros] = 
+							effect.calc_pos_zeros_pair();
+						start_node->children[dir] = 
+							random_node_recursive(new_pos, zeros, depth, callable);
+					} 
+					else //illegal direction 
+					{
+						start_node->children[dir] = nullptr;
+					}
+				}
+				return start_node;
+			}
 		public:
+			GraphSearcher(NumberPopper); //gets a copy
 			/** 
 			 * Find a subgraph from a given position and a given depth.
 			 * Returns a UserNode representing the supplied Position,
 			 * with the pointers to the children nodes.
 			 */
-			GameTree* subgraph_of_depth(Position&, int);
-			GraphSearcher(NumberPopper); //gets a copy
+			template<typename Callable>
+			GameTree* subgraph_of_depth(Position& pos, int depth, Callable&& callable)
+			{
+				current_tree = GameTree();
+				current_tree.root = user_node_recursive(pos, depth, callable);
+				return &current_tree;
+			}
 	};
 
 
@@ -137,6 +193,7 @@ namespace c20::search {
 	{
 		public:
 			virtual Value evaluate(Position&) = 0;
+			virtual void batch_evaluate(std::vector<UserNode*>&) = 0;
 	};
 
 	/**
@@ -146,13 +203,11 @@ namespace c20::search {
 	class GraphEvaluator
 	{
 		private:
-			NodeEvaluator* node_eval;
 			NodeDistribution eval_usernode_recursive(UserNode*);
 			void eval_randomnode_recursive(RandomNode*);
 			/** Evaluate distribution, for coparison, and set member. */
 			Value eval_and_set(Evaluation&);
 		public:
-			GraphEvaluator(NodeEvaluator*);
 			MoveDirection pick_one(GameTree*);
 			/** Evaluate GameTree nodes recursively. */
 			void evaluate(GameTree*);
@@ -163,6 +218,7 @@ namespace c20::search {
 			GraphSearcher *graph_searcher;
 			GraphEvaluator *graph_evaluator;
 			NodeEvaluator *node_eval;
+			std::vector<UserNode*> final_nodes;
 		public:
 			SearchManager(NodeEvaluator*, NumberPopper);
 			virtual UserMove make_move();

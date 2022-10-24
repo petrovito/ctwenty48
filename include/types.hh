@@ -11,6 +11,7 @@
 #include <string>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #define MAX_NUMBERS 16
 #define MAX_MOVES 65536
@@ -125,6 +126,8 @@ namespace c20::commons {
 			/** Element from table. */
 			Number& operator()(int,int);
 			SquareIterator squares() const;
+			/** Sum of (power of two) of squares. */
+			int power_sum();
 			static Position from_str(std::string&&);
 	};
 
@@ -187,11 +190,8 @@ namespace c20::commons {
 	class Game 
 	{
 		private:
-			Position positions[MAX_MOVES];
-			int current_pos_idx;
-			Position *current_pos;
+			std::vector<Position> positions;
 			NumberPopper popper;
-			
 		public:
 			Game();
 			Game(Position&&);

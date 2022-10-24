@@ -12,24 +12,22 @@ namespace c20::commons {
 
 //start Game class
 
-	Game::Game() :
-		current_pos_idx(0), current_pos(positions)
+	Game::Game()
 	{ 
-		positions[0] = Position();
+		positions.push_back(Position());
 	}
 
 
-	Game::Game(Position&& pos) :
-		current_pos_idx(0), current_pos(positions)
+	Game::Game(Position&& pos)
 	{
-		positions[0] = pos;
+		positions.push_back(pos);
 	}
 
 
 	MoveResult Game::do_move(UserMove user_move) 
 	{
 		auto dir = user_move.direction;
-		auto effect = current_pos->calc_move(dir);
+		auto effect = positions.back().calc_move(dir);
 		//calc new pos without Popup
 		if (!effect.has_changed) return MoveResult{.type=INVALID};
 		auto [new_pos, zeros] = effect.calc_pos_zeros_pair();
@@ -37,19 +35,18 @@ namespace c20::commons {
 		if (zeros.size()) {
 			popper.place_one(new_pos, zeros);
 		}	
-		positions[++current_pos_idx] = new_pos;
-		current_pos = positions + current_pos_idx;
-		return MoveResult{SUCCES, current_pos};
+		positions.push_back(new_pos);
+		return MoveResult{SUCCES, &positions.back()};
 	}
 
 	bool Game::is_over()
 	{
-		return current_pos->is_over();
+		return positions.back().is_over();
 	}
 
 	const Position* Game::current_position() 
 	{
-		return this->current_pos;
+		return &positions.back();
 	}
 
 	GeneralDirection general(MoveDirection direction) 
@@ -59,15 +56,15 @@ namespace c20::commons {
 
 	PositionIterator Game::history() 
 	{
-		return PositionIterator(positions, positions+current_pos_idx +1);
+		return PositionIterator(positions.begin().base(), positions.end().base());
 	}
 
 
 	Game* Game::start_game()
 	{
 		Game *game = new Game();
-		game->popper.place_one(*game->current_pos);
-		game->popper.place_one(*game->current_pos);
+		game->popper.place_one(game->positions.back());
+		game->popper.place_one(game->positions.back());
 		return game;
 	}
 
@@ -201,6 +198,15 @@ namespace c20::commons {
 			if ((*const_cast<Position*>(this))[i] == 0) zeros++;
 		}
 		return zeros;
+	}
+
+	int Position::power_sum()
+	{
+		int sum = 0;
+		for (int i = 0; i < NUM_SQUARES; i++) {
+			sum += 1 << (*this)[i]; //TODO this is not precise
+		}
+		return sum;
 	}
 	
 	Position Position::from_str(std::string &&table_str)

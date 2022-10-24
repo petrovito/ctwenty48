@@ -36,31 +36,39 @@ def get_parser() -> argparse.ArgumentParser:
             default=default_train_data_dir + "/train_it_0.csv")
     new_model_parser.set_defaults(func=new_model_from_csv_entrypoint)
 
-    play_random_games_parser = subparsers.add_parser('random-games')
-    play_random_games_parser.add_argument('--num-games', type=str, default='100')
-    play_random_games_parser.add_argument('--out-path', type=str, 
+    play_games_parser = subparsers.add_parser('play-games')
+    play_games_parser.add_argument('--random', action='store_true')
+    play_games_parser.add_argument('--num-games', type=str, default='100')
+    play_games_parser.add_argument('--out-path', type=str, 
             default=default_train_data_dir + 'random_games.csv')
-    play_random_games_parser.add_argument('--ctwenty_bin', type=str,
-            default='build/bin/ctwenty48')
-    play_random_games_parser.set_defaults(func=run_random_games_entrypoint)
+    play_games_parser.add_argument('--ctwenty_bin', type=str,
+            default='Release/bin/ctwenty48')
+    play_games_parser.set_defaults(func=run_games_entrypoint)
+
     return parser
 
 
-def play_random_games(ctwenty_bin: str, num_games: str, log_path: str):
+def play_games(ctwenty_bin: str, random: bool, num_games: str, log_path: str):
     """
-    Run the random games function of ctwenty48 bin, and saving the
+    Run games function of ctwenty48 bin, and saving the
     game logs to the specified log_path.
     """
-    logging.info(('Running {} random games in child process, ' +
+    logging.info(('Running {} games in child process, ' +
         'saving game logs to {}').format(num_games, log_path))
-    process = subprocess.Popen([ctwenty_bin, "--random", 
+
+    command = [ctwenty_bin, 
         '--num', num_games, 
-        '--log-path', log_path])
+        '--log-path', log_path]
+    if random:
+        logging.info("Random games turned on.")
+        command.append('--random')
+
+    process = subprocess.Popen()
     exit_code = process.wait(timeout=10)
     if (exit_code):
         logging.error('Nonzero exit code while running random games: {}'
                 .format(exit_code))
-        raise Exception('Failed running random_games')
+        raise Exception('Failed running games')
     logging.info('Running random games is done.')
 
 
@@ -146,8 +154,8 @@ def new_model_from_csv_entrypoint(args):
     new_model_from_csv(args.model_path, args.input_csv_path)
 
 
-def run_random_games_entrypoint(args):
-    play_random_games(args.ctwenty_bin, args.num_games, args.out_path)
+def run_games_entrypoint(args):
+    play_games(args.ctwenty_bin, args.random, args.num_games, args.out_path)
 
 
 def main():
