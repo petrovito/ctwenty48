@@ -147,15 +147,16 @@ namespace c20::search {
 		/* 	if (i %4 ==0) cout << '|'; */
 		/* 	cout <<int(pos[i]); */
 		/* } */
+		/* cout<<endl; */
 
 		node_container->reset(pos);
 
-		while (node_container->usernode_count() < 10000) {
+		for (int i = 0; i < 24; i++) {
+			if (node_container->usernode_count() > 2000) break;
 			int new_nodes = graph_searcher->search_level();
 			if (new_nodes == 0) break;
 		}
-
-		/* cout << "   " << tree->nodes.size() << "   " << endl; */
+		/* cout << "   " << node_container->usernode_count() << "   " << endl; */
 		
 		auto final_nodes = node_container->get_final_nodes();
 		node_eval->batch_evaluate(final_nodes);
@@ -178,9 +179,15 @@ namespace c20::search {
 	{
 		if (usernode_idx == NUM_USERNODES)
 			throw std::runtime_error("Index out of bound.");
+		if (usernode_map.count(pos))
+		{
+			return usernode_map[pos];
+		}
 		usernode_buf[usernode_idx] = UserNode(pos);
 		auto ptr = &usernode_buf[usernode_idx];
+
 		usernode_idx++;
+		usernode_map[pos] = ptr;
 		return ptr;
 	}
 
@@ -189,9 +196,15 @@ namespace c20::search {
 	{
 		if (randomnode_idx == NUM_RANDOMNODES)
 			throw std::runtime_error("Index out of bound.");
+		if (randomnode_map.count(pos))
+		{
+			return randomnode_map[pos];
+		}
 		randomnode_buf[randomnode_idx] = RandomNode(pos);
 		auto ptr = &randomnode_buf[randomnode_idx];
+
 		randomnode_idx++;
+		randomnode_map[pos] = ptr;
 		return ptr;
 	}
 
@@ -204,6 +217,8 @@ namespace c20::search {
 		usernode_buf[0] = UserNode(pos);
 		usernode_idx = 1;
 		randomnode_idx = 0;
+		usernode_map.clear();
+		randomnode_map.clear();
 	}
 
 	void NodeContainer::increase_level()
@@ -211,6 +226,8 @@ namespace c20::search {
 		current_level++;
 		usernode_levels[current_level] = usernode_idx;
 		randomnode_levels[current_level] = randomnode_idx;
+		usernode_map.clear();
+		randomnode_map.clear();
 	}
 
 	int NodeContainer::last_level_length() 
@@ -242,6 +259,10 @@ namespace c20::search {
 	RandomNode* GraphSearcher::random_node(Position pos, ZeroIndices& zeros)
 	{
 		auto random_node = node_container->push_randomnode(pos);
+
+		//if random node was already contained the children are populated already
+		if (random_node->children.size()) return random_node;
+		
 		for (auto [prob, child_pos]: popper.dist_from(pos, zeros))
 		{
 			auto child_node = node_container->push_usernode(child_pos);

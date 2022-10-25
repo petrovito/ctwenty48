@@ -7,6 +7,7 @@
 #include <boost/container/static_vector.hpp>
 
 #include <boost/random/uniform_int_distribution.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <tuple>
@@ -122,15 +123,20 @@ namespace c20::commons {
 			int num_zeros() const;
 
 			/** Returns entry from flattened version of table. */
-			Number& operator[](int);
+			Number& operator[](int) const;
 			/** Element from table. */
 			Number& operator()(int,int);
+			bool operator==(const Position&) const;
 			SquareIterator squares() const;
 			/** Sum of (power of two) of squares. */
 			int power_sum();
 			static Position from_str(std::string&&);
 	};
 
+	struct PositionHasher
+	{
+		std::size_t operator()(const Position& pos) const;
+	};
 
 	struct MoveResult 
 	{

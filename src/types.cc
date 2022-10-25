@@ -1,6 +1,8 @@
 #include <boost/container/static_vector.hpp>
 #include <boost/random/discrete_distribution.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
+#include <cstddef>
+#include <cstring>
 #include <tuple>
 #include <types.hh>
 
@@ -122,7 +124,7 @@ namespace c20::commons {
 
 //start Position class
 
-	Number& Position::operator[](int index) 
+	Number& Position::operator[](int index) const
 	{
 		return ((Number*)(table))[index];
 	}
@@ -131,6 +133,11 @@ namespace c20::commons {
 	Number& Position::operator()(int row, int column) 
 	{
 		return table[row][column];
+	}
+	
+	bool Position::operator==(const Position& other) const
+	{
+		return memcmp(this->table, other.table, NUM_SQUARES * sizeof(Number)) == 0;
 	}
 
 	MoveResultSegment Position::calc_move_segment(MoveDirection dir, int segment) const
@@ -291,6 +298,19 @@ namespace c20::commons {
 		}
 		return dist;
 	}
+
+//PositionHasher
+
+	size_t PositionHasher::operator()(const Position &pos) const
+	{
+		size_t hash = 0;
+		for (int i = 0; i < NUM_SQUARES; i++)
+		{
+			hash = hash *31 + pos[i];
+		}
+		return hash;
+	}
+
 
 //start utils
 	

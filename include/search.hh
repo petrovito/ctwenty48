@@ -6,6 +6,7 @@
 #include <types.hh>
 #include <array>
 #include <cstdint>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -119,6 +120,9 @@ namespace c20::search {
 			int usernode_idx, randomnode_idx;
 			std::array<int, 128> usernode_levels;
 			std::array<int, 128> randomnode_levels;
+
+			std::unordered_map<Position, UserNode*, PositionHasher> usernode_map;
+			std::unordered_map<Position, RandomNode*, PositionHasher> randomnode_map;
 
 		public:
 			NodeContainer();
