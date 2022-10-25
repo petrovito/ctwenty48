@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game_play.hh"
+#include <boost/container/static_vector.hpp>
 #include <memory>
 #include <types.hh>
 #include <array>
@@ -60,9 +61,10 @@ namespace c20::search {
 		Position pos;
 		/** Is game over at this node. */
 		bool is_over = false;
-		/** Is this a final node in calculating NodeDistribution? */
-		bool is_final = false;
+        /** Is this a final node in calculating NodeDistribution? */
+        bool is_final = false;
 
+		Node();
 		Node(Position);
 		virtual ~Node() = default;
 	};
@@ -80,6 +82,7 @@ namespace c20::search {
 
 		std::array<RandomNode*, NUM_DIRECTIONS> children;
 
+		UserNode();
 		UserNode(Position);
 		virtual ~UserNode() = default;
 	};
@@ -96,22 +99,39 @@ namespace c20::search {
 		/** Distribution of children nodes. */
 		std::vector<std::pair<Probability, UserNode*>> children;
 
+		RandomNode();
 		RandomNode(Position);
 		virtual ~RandomNode() = default;
 	};
 
 
-	class GameTree
-	{
-		public:
-			UserNode* root;
-			std::vector<std::unique_ptr<Node>> nodes;
+#define NUM_USERNODES    1<<20
+#define NUM_RANDOMNODES  1<<18
+	
 
-			GameTree() = default;
-			GameTree(const GameTree&) = delete;
-			GameTree(GameTree&&) = default;
-			GameTree& operator=(const GameTree&) = delete;
-			GameTree& operator=(GameTree&&) = default;
+	class NodeContainer
+	{
+		private:
+			UserNode* usernode_buf;
+			RandomNode* randomnode_buf;
+			UserNode *root;
+			int current_level;
+			int usernode_idx, randomnode_idx;
+			std::array<int, 128> usernode_levels;
+			std::array<int, 128> randomnode_levels;
+
+		public:
+			NodeContainer();
+			UserNode* push_usernode(Position&);
+			RandomNode* push_randomnode(Position&);
+			void reset(Position&);
+			void increase_level();
+			int last_level_length();
+			std::vector<UserNode*> get_final_nodes();
+			inline UserNode* root_node() {return root;};
+			inline int usernode_count() {return usernode_idx;};
+			std::pair<UserNode*, UserNode*> last_level_usernodes();
+
 	};
 
 	/** 
@@ -121,74 +141,13 @@ namespace c20::search {
 	class GraphSearcher 
 	{
 		private:
-			GameTree current_tree;
 			NumberPopper popper;
+			NodeContainer *node_container;
 
-
-			template<typename Callable>
-			RandomNode* random_node_recursive(
-				Position pos, ZeroIndices& zeros, int depth, Callable&& callable)
-			{
-				auto random_node = new RandomNode(pos);
-				current_tree.nodes.emplace_back(random_node);
-				for (auto [prob, child_pos]: popper.dist_from(pos, zeros))
-				{
-					random_node->children.push_back({prob,
-							user_node_recursive(child_pos, depth -1, callable)});
-				}
-				return random_node;
-			}
-
-
-			template<typename Callable>
-			UserNode* user_node_recursive( Position pos, int depth, Callable&& callable) 
-			{
-				auto start_node = new UserNode(pos);
-				current_tree.nodes.emplace_back(start_node);
-				if (pos.is_over()) //special case of game_over nodes
-				{
-					start_node->is_over = true;
-					start_node->is_final = true;
-					callable(start_node);
-					return start_node;
-				}
-				if (depth == 0) // stop recursion at depth 1
-				{
-					start_node->is_final = true;
-					callable(start_node);
-					return start_node;
-				}
-				for (auto dir: directions)
-				{
-					auto effect = pos.calc_move(dir);
-					if (effect.has_changed) 
-					{
-						auto [new_pos, zeros] = 
-							effect.calc_pos_zeros_pair();
-						start_node->children[dir] = 
-							random_node_recursive(new_pos, zeros, depth, callable);
-					} 
-					else //illegal direction 
-					{
-						start_node->children[dir] = nullptr;
-					}
-				}
-				return start_node;
-			}
+			RandomNode* random_node(Position pos, ZeroIndices& zeros);
 		public:
-			GraphSearcher(NumberPopper); //gets a copy
-			/** 
-			 * Find a subgraph from a given position and a given depth.
-			 * Returns a UserNode representing the supplied Position,
-			 * with the pointers to the children nodes.
-			 */
-			template<typename Callable>
-			GameTree* subgraph_of_depth(Position& pos, int depth, Callable&& callable)
-			{
-				current_tree = GameTree();
-				current_tree.root = user_node_recursive(pos, depth, callable);
-				return &current_tree;
-			}
+			GraphSearcher(NumberPopper&, NodeContainer*); //gets a copy
+			int search_level();
 	};
 
 
@@ -211,17 +170,17 @@ namespace c20::search {
 			/** Evaluate distribution, for coparison, and set member. */
 			Value eval_and_set(Evaluation&);
 		public:
-			MoveDirection pick_one(GameTree*);
+			MoveDirection pick_one(NodeContainer*);
 			/** Evaluate GameTree nodes recursively. */
-			void evaluate(GameTree*);
+			void evaluate(NodeContainer*);
 	};
 
 	class SearchManager : public core::MoveSelector {
 		private:
+			NodeContainer *node_container;
 			GraphSearcher *graph_searcher;
 			GraphEvaluator *graph_evaluator;
 			NodeEvaluator *node_eval;
-			std::vector<UserNode*> final_nodes;
 		public:
 			SearchManager(NodeEvaluator*, NumberPopper);
 			virtual UserMove make_move();
