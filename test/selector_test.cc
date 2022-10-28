@@ -43,7 +43,7 @@ namespace c20::selectors {
 
 	TEST(Selector, PlayRandomGame)
 	{
-		auto ui = std::shared_ptr<core::UIHandler>(new ui::NoopUI());
+		auto ui = std::shared_ptr<ui::UIHandler>(new ui::NoopUI());
 		auto random_selector = 
 			std::shared_ptr<core::MoveSelector>(new RandomSelector());
 		core::GamePlayer game_player(ui, random_selector);

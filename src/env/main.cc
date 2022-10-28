@@ -34,7 +34,7 @@ int main(int argc, char** args) {
 
 
 	shared_ptr<c20::core::MoveSelector> move_selector;
-	shared_ptr<c20::core::UIHandler> ui;
+	shared_ptr<c20::ui::UIHandler> ui;
 	shared_ptr<c20::core::GamePlayer> game_player;
 
 

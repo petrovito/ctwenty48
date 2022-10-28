@@ -134,6 +134,11 @@ namespace c20::commons {
 	{
 		return table[row][column];
 	}
+
+	Number Position::at(int row, int column) const
+	{
+		return table[row][column];
+	}
 	
 	bool Position::operator==(const Position& other) const
 	{

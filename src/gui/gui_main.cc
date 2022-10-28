@@ -1,5 +1,10 @@
+#include "game_play.hh"
+#include "gui/gui.hh"
+#include "search.hh"
 #include "types.hh"
+#include "ui.hh"
 #include <iostream>
+#include <memory>
 #include <nana/basic_types.hpp>
 #include <nana/gui.hpp>                  // always include this
 #include <nana/gui/widgets/button.hpp>
@@ -55,13 +60,13 @@ namespace c20::gui {
 			}
 	}
 
-	void TablePanel::set_position(commons::Position& pos) 
+	void TablePanel::set_position(const commons::Position& pos) 
 	{
 		for (int i = 0; i < TABLE_SIZE; i++)
 			for (int j = 0; j < TABLE_SIZE; j++)
 			{
 				auto& sq = squares[i][j];
-				auto num = pos(i, j);
+				auto num = pos.at(i, j);
 				sq->caption(std::to_string(num));
 				sq->bgcolor(nana::color_rgb(colors[num]));
 			}
@@ -140,22 +145,68 @@ namespace c20::gui {
 	}
 
 
-	void C2048Window::set_position(commons::Position& pos) 
+	void C2048Window::set_position(const commons::Position& pos) 
 	{
 		table_panel.set_position(pos);
+	}
+
+
+	void C2048Window::set_handler(std::shared_ptr<GUI>& _handler)
+	{
+		handler = _handler;
+		control_panel.set_handler(_handler);
+	}
+
+	void ControlPanel::set_handler(std::shared_ptr<GUI>& _handler)
+	{
+		handler = _handler;
+		main_tab.set_handler(_handler);
+	}
+
+	void MainTab::set_handler(std::shared_ptr<GUI>& _handler)
+	{
+		handler = _handler;
 	}
 
 
 }
 
 
-
+#include <env/environment.hh>
+#include <cnn.hh>
+#include <game_play.hh>
 
 int main()
 {
-	c20::gui::C2048Window window;
+
+	auto window = std::shared_ptr<c20::gui::C2048Window>();
 	auto pos = c20::commons::Position::from_str("1111|2222|3333|4444");
-	window.set_position(pos);
-	window.do_show();
+	window->set_position(pos);
+
+	std::shared_ptr<c20::gui::GUI> gui =
+		std::shared_ptr<c20::gui::GUI>(new c20::gui::GUI(window.get()));
+
+	window->set_handler(gui);
+	std::shared_ptr<c20::ui::UIHandler> ui = gui;
+
+
+	auto popper = std::shared_ptr<c20::commons::NumberPopper>();
+	
+	auto node_eval = std::shared_ptr<c20::cnn::NeuralEvaluator>(
+			c20::cnn::NeuralEvaluator::load_from("cnn/models/v1/"));
+	std::shared_ptr<c20::core::MoveSelector> selector =
+		std::shared_ptr<c20::search::SearchManager>(
+			new c20::search::SearchManager(node_eval.get(), *popper));
+
+	auto game_player = std::shared_ptr<c20::core::GamePlayer>(
+			new c20::core::GamePlayer(ui, selector));
+
+	c20::core::Environment env{
+		selector,
+		ui,
+		game_player,
+		window
+	};
+	window->do_show();
 }
 

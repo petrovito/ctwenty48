@@ -3,6 +3,7 @@
 #include <atomic>
 #include <memory>
 #include <types.hh>
+#include <ui.hh>
 
 namespace c20::core {
 
@@ -18,17 +19,6 @@ namespace c20::core {
 			virtual UserMove make_move() = 0;
 	};
 
-	class GamePlayer;
-
-	class UIHandler
-	{
-		private:
-			GamePlayer *game_player;
-		public:
-			virtual void set_position(const Position&) = 0;
-			virtual void game_over() = 0;
-	};
-
 	
 	enum State 
 	{
@@ -42,12 +32,13 @@ namespace c20::core {
 		private:
 			std::unique_ptr<Game> current_game;
 			std::shared_ptr<MoveSelector> move_selector;
-			std::shared_ptr<UIHandler> ui;
+			std::shared_ptr<ui::UIHandler> ui;
 			std::atomic<State> current_state;
 
 			void set_position_for_handlers(const Position&);
 		public:
-			GamePlayer(std::shared_ptr<UIHandler>&, std::shared_ptr<MoveSelector>&);
+			GamePlayer(std::shared_ptr<ui::UIHandler>&,
+					std::shared_ptr<MoveSelector>&);
 			/** Dumb stateless play one game method. */
 			std::unique_ptr<Game> play_a_game();
 	};

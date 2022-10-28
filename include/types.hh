@@ -126,6 +126,7 @@ namespace c20::commons {
 			Number& operator[](int) const;
 			/** Element from table. */
 			Number& operator()(int,int);
+			Number at(int, int) const;
 			bool operator==(const Position&) const;
 			SquareIterator squares() const;
 			/** Sum of (power of two) of squares. */

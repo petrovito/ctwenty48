@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <nana/gui.hpp>
 #include <nana/gui/place.hpp>
 #include <nana/gui/widgets/button.hpp>
@@ -15,6 +16,7 @@
 
 namespace c20::gui {
 
+	class GUI;
 
 	class TablePanel : public nana::panel<false>
 	{
@@ -23,7 +25,7 @@ namespace c20::gui {
 			std::unique_ptr<nana::label> squares[TABLE_SIZE][TABLE_SIZE];
 		public:
 			TablePanel(nana::window);
-			void set_position(commons::Position&);
+			void set_position(const commons::Position&);
 	};
 
 
@@ -35,8 +37,11 @@ namespace c20::gui {
 			nana::group btn_group;
 
 			nana::button start_btn;
+
+			std::shared_ptr<GUI> handler;
 		public:
 			MainTab(nana::window);
+			void set_handler(std::shared_ptr<GUI>&);
 	};
 
 	class HistoryTab : public nana::panel<false>
@@ -57,8 +62,10 @@ namespace c20::gui {
 			MainTab main_tab;
 			HistoryTab history_tab;
 
+			std::shared_ptr<GUI> handler;
 		public:
 			ControlPanel(nana::window);
+			void set_handler(std::shared_ptr<GUI>&);
 	};
 
 
@@ -70,10 +77,14 @@ namespace c20::gui {
 			nana::place place;
 			TablePanel table_panel;
 			ControlPanel control_panel;
+
+			std::shared_ptr<GUI> handler;
 		public:
 			C2048Window();
+
+			void set_handler(std::shared_ptr<GUI>&);
 			void do_show();
-			void set_position(commons::Position&);
+			void set_position(const commons::Position&);
 	};
 		
 
