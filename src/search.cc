@@ -152,7 +152,7 @@ namespace c20::search {
 		node_container->reset(pos);
 
 		for (int i = 0; i < 24; i++) {
-			if (node_container->usernode_count() > 2000) break;
+			if (node_container->usernode_count() > 9000) break;
 			int new_nodes = graph_searcher->search_level();
 			if (new_nodes == 0) break;
 		}

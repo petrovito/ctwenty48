@@ -11,3 +11,5 @@ cnn/models/
 cnn/train_data/
 perf.data*
 valgrind/
+compile_commands.json
+

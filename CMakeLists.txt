@@ -32,7 +32,6 @@ add_library(ctwenty48_core STATIC
 
 #target_link_libraries(ctwenty48_core PUBLIC CONAN_PKG::llvm-openmp)
 target_link_libraries(ctwenty48_core PUBLIC 
-	CONAN_PKG::imgui
     CONAN_PKG::boost
     CONAN_PKG::csv-parser
     CONAN_PKG::cppflow
@@ -43,6 +42,28 @@ target_include_directories(ctwenty48_core PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 
 set_property(TARGET ctwenty48_core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+
+add_executable(testgui src/gui/test.cc)
+
+# providing x11 libraries is a pain so that is gonna be a dependency
+# install debian package libx11-dev
+find_package(X11 REQUIRED)
+target_link_libraries(CONAN_PKG::nana INTERFACE
+	${X11_LIBRARIES}
+	${X11_Xft_LIB}
+	)
+find_package(Freetype)                # Freetype - todo test PRIVATE
+if (FREETYPE_FOUND)
+	find_package(Fontconfig REQUIRED)
+	target_link_libraries(CONAN_PKG::nana INTERFACE
+		${FREETYPE_LIBRARIES}
+		${FONTCONFIG_LIBRARIES}
+		)
+endif(FREETYPE_FOUND)
+
+target_link_libraries(testgui PUBLIC
+	CONAN_PKG::nana    
+	)
 
 
 #MAIN EXEC
