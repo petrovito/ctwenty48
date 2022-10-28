@@ -4,6 +4,7 @@
 #include <nana/gui.hpp>
 #include <nana/gui/place.hpp>
 #include <nana/gui/widgets/button.hpp>
+#include <nana/gui/widgets/form.hpp>
 #include <nana/gui/widgets/group.hpp>
 #include <nana/gui/widgets/label.hpp>
 #include <nana/gui/widgets/panel.hpp>
@@ -58,7 +59,24 @@ namespace c20::gui {
 
 		public:
 			ControlPanel(nana::window);
-
 	};
+
+
+
+	class C2048Window : public nana::form
+	{
+
+		private:
+			nana::place place;
+			TablePanel table_panel;
+			ControlPanel control_panel;
+		public:
+			C2048Window();
+			void do_show();
+			void set_position(commons::Position&);
+	};
+		
+
+
 
 }

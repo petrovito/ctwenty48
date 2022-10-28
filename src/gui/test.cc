@@ -53,7 +53,6 @@ namespace c20::gui {
 				sq->typeface({"", 35});
 				place["table"] << *sq;
 			}
-		place.collocate();
 	}
 
 	void TablePanel::set_position(commons::Position& pos) 
@@ -119,6 +118,34 @@ namespace c20::gui {
 	{}
 
 
+	C2048Window::C2048Window() : 
+		place(*this),
+		table_panel(*this),
+		control_panel(*this)
+	{
+		caption("C2048");
+		size({900, 400});
+
+		place.div("horizontal <table margin=3 weight=400><control>");
+		place["table"] << table_panel;
+		place["control"] << control_panel;
+	}
+
+
+	void C2048Window::do_show() 
+	{
+		place.collocate();
+		show();
+		nana::exec();
+	}
+
+
+	void C2048Window::set_position(commons::Position& pos) 
+	{
+		table_panel.set_position(pos);
+	}
+
+
 }
 
 
@@ -126,25 +153,9 @@ namespace c20::gui {
 
 int main()
 {
-	using namespace nana;
-	form   fm ;                             // Our main window
-	fm.caption("c2048");       // (with this title)
-	fm.size({900,400});
-	place  fm_place{fm};                    // have automatic layout
-
-	fm_place.div("horizontal <table margin=3 weight=400><actions>");
-
-	c20::gui::TablePanel bar(fm);
+	c20::gui::C2048Window window;
 	auto pos = c20::commons::Position::from_str("1111|2222|3333|4444");
-	bar.set_position(pos);
-
-	c20::gui::ControlPanel control(fm);
-
-	fm_place["table"] << bar;
-	fm_place["actions"] << control;
-
-	fm_place.collocate();                      // and collocate all in place
-	fm.show();
-	exec();
+	window.set_position(pos);
+	window.do_show();
 }
 
