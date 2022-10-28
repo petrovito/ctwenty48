@@ -43,7 +43,8 @@ target_include_directories(ctwenty48_core PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 set_property(TARGET ctwenty48_core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
-add_executable(testgui src/gui/test.cc)
+add_executable(testgui1 src/gui/test.cc)
+add_executable(testgui2 src/gui/test2.cc)
 
 # providing x11 libraries is a pain so that is gonna be a dependency
 # install debian package libx11-dev
@@ -61,7 +62,11 @@ if (FREETYPE_FOUND)
 		)
 endif(FREETYPE_FOUND)
 
-target_link_libraries(testgui PUBLIC
+target_link_libraries(testgui1 PUBLIC
+	ctwenty48_core
+	CONAN_PKG::nana    
+	)
+target_link_libraries(testgui2 PUBLIC
 	CONAN_PKG::nana    
 	)
 
