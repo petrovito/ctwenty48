@@ -43,31 +43,37 @@ target_include_directories(ctwenty48_core PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 set_property(TARGET ctwenty48_core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
-add_executable(ctwenty48_gui 
-	src/gui/gui_main.cc
-	src/gui/gui.cc
-	)
 
-# providing x11 libraries is a pain so that is gonna be a dependency
-# install debian package libx11-dev
-find_package(X11 REQUIRED)
-target_link_libraries(CONAN_PKG::nana INTERFACE
-	${X11_LIBRARIES}
-	${X11_Xft_LIB}
-	)
-find_package(Freetype)                # Freetype - todo test PRIVATE
-if (FREETYPE_FOUND)
-	find_package(Fontconfig REQUIRED)
-	target_link_libraries(CONAN_PKG::nana INTERFACE
-		${FREETYPE_LIBRARIES}
-		${FONTCONFIG_LIBRARIES}
+if(NOT BUILD_GUI)
+	set(BUILD_GUI 0)
+endif()
+if (BUILD_GUI)
+	add_executable(ctwenty48_gui 
+		src/gui/gui_main.cc
+		src/gui/gui.cc
 		)
-endif(FREETYPE_FOUND)
 
-target_link_libraries(ctwenty48_gui PUBLIC
-	ctwenty48_core
-	CONAN_PKG::nana    
-	)
+	# providing x11 libraries is a pain so that is gonna be a dependency
+	# install debian package libx11-dev
+	find_package(X11 REQUIRED)
+	target_link_libraries(CONAN_PKG::nana INTERFACE
+		${X11_LIBRARIES}
+		${X11_Xft_LIB}
+		)
+	find_package(Freetype)                # Freetype - todo test PRIVATE
+	if (FREETYPE_FOUND)
+		find_package(Fontconfig REQUIRED)
+		target_link_libraries(CONAN_PKG::nana INTERFACE
+			${FREETYPE_LIBRARIES}
+			${FONTCONFIG_LIBRARIES}
+			)
+	endif(FREETYPE_FOUND)
+
+	target_link_libraries(ctwenty48_gui PUBLIC
+		ctwenty48_core
+		CONAN_PKG::nana    
+		)
+endif()
 
 
 #MAIN EXEC
