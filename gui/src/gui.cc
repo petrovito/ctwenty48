@@ -1,5 +1,5 @@
-#include "gui/widgets.hh"
-#include <gui/gui.hh>
+#include "widgets.hh"
+#include <gui.hh>
 
 namespace c20::gui {
 

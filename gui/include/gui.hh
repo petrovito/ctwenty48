@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gui/widgets.hh"
+#include "widgets.hh"
 #include <memory>
 #include <game_play.hh>
 #include <ui.hh>

@@ -1,5 +1,5 @@
 #include "game_play.hh"
-#include "gui/gui.hh"
+#include "gui.hh"
 #include "search.hh"
 #include "types.hh"
 #include "ui.hh"
@@ -12,7 +12,7 @@
 #include <nana/gui/widgets/label.hpp>
 #include <nana/gui/msgbox.hpp>
 
-#include <gui/widgets.hh>
+#include <widgets.hh>
 #include <nana/gui/widgets/panel.hpp>
 #include <string>
 
