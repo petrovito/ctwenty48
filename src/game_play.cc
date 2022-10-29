@@ -6,11 +6,6 @@
 
 namespace c20::core {
 
-	void MoveSelector::set_position(const Position& _pos)
-	{
-		pos = _pos;
-	}
-
 	StateLocker::StateLocker(std::atomic<State>& _state) :
 		state(_state)
 	{
@@ -26,7 +21,7 @@ namespace c20::core {
 
 
 	GamePlayer::GamePlayer(std::shared_ptr<ui::UIHandler>& _ui,
-						   std::shared_ptr<MoveSelector>& _move_selector) : 
+			   std::shared_ptr<selectors::MoveSelector>& _move_selector) : 
 		ui(_ui), move_selector(_move_selector), current_state(WAITING) {}
 
 

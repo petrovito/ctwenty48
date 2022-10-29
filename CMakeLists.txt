@@ -6,6 +6,8 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_COMPILER_VERSION 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -ggdb3")
+
 if(NOT BUILD_GUI)
 	set(BUILD_GUI 0)
 endif()
@@ -56,22 +58,22 @@ target_link_libraries(ctwenty48 PRIVATE ctwenty48_core)
 #GUI
 if (BUILD_GUI)
 	add_subdirectory(gui)
-# providing x11 libraries is a pain so that is gonna be a dependency
-# install debian package libx11-dev
-# todo HOWTO incorporate that into conan?
-find_package(X11 REQUIRED)
-target_link_libraries(CONAN_PKG::nana INTERFACE
-	${X11_LIBRARIES}
-	${X11_Xft_LIB}
-	)
-find_package(Freetype)                # Freetype - todo test PRIVATE
-if (FREETYPE_FOUND)
-	find_package(Fontconfig REQUIRED)
+	# providing x11 libraries is a pain so that is gonna be a dependency
+	# install debian package libx11-dev
+	# todo HOWTO incorporate that into conan?
+	find_package(X11 REQUIRED)
 	target_link_libraries(CONAN_PKG::nana INTERFACE
-		${FREETYPE_LIBRARIES}
-		${FONTCONFIG_LIBRARIES}
+		${X11_LIBRARIES}
+		${X11_Xft_LIB}
 		)
-endif(FREETYPE_FOUND)
+	find_package(Freetype)                # Freetype - todo test PRIVATE
+	if (FREETYPE_FOUND)
+		find_package(Fontconfig REQUIRED)
+		target_link_libraries(CONAN_PKG::nana INTERFACE
+			${FREETYPE_LIBRARIES}
+			${FONTCONFIG_LIBRARIES}
+			)
+	endif(FREETYPE_FOUND)
 endif()
 
 

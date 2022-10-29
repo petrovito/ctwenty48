@@ -179,7 +179,7 @@ namespace c20::search {
 			void evaluate(NodeContainer*);
 	};
 
-	class SearchManager : public core::MoveSelector {
+	class SearchManager : public selectors::MoveSelector {
 		private:
 			NodeContainer *node_container;
 			GraphSearcher *graph_searcher;

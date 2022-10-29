@@ -6,6 +6,11 @@
 namespace c20::selectors {
 
 
+	void MoveSelector::set_position(const Position& _pos)
+	{
+		pos = _pos;
+	}
+
 	RandomSelector::RandomSelector() :
 		gen(static_cast<std::uint32_t>(std::time(0))),
 		uniform(0, NUM_DIRECTIONS -1)

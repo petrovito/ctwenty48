@@ -14,7 +14,7 @@ namespace c20::core {
 	class Environment
 	{
 		public:
-			std::shared_ptr<MoveSelector> move_selector;
+			std::shared_ptr<selectors::MoveSelector> move_selector;
 			std::shared_ptr<ui::UIHandler> ui;
 			std::shared_ptr<GamePlayer> game_player;
 			std::shared_ptr<gui::C2048Window> window;

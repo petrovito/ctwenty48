@@ -33,7 +33,7 @@ int main(int argc, char** args) {
 	cout<<"Running ctwenty48."<<endl;
 
 
-	shared_ptr<c20::core::MoveSelector> move_selector;
+	shared_ptr<c20::selectors::MoveSelector> move_selector;
 	shared_ptr<c20::ui::UIHandler> ui;
 	shared_ptr<c20::core::GamePlayer> game_player;
 
