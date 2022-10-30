@@ -8,7 +8,7 @@ class NanaConan(ConanFile):
     
     settings = "os", "compiler", "build_type", "arch"
     
-    # requires = 'libxft/2.3.6'
+    requires = 'libxft/2.3.6'
 
     def source(self):
         self.run("git clone https://github.com/cnjinhao/nana.git --branch v1.7.4")

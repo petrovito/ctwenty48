@@ -11,7 +11,6 @@ target_link_libraries(ctwenty48_gui PUBLIC
 	CONAN_PKG::onetbb
 	CONAN_PKG::nana    
 	)
-message(${CONAN_INCLUDE_DIRS_ONETBB})
 target_include_directories(ctwenty48_gui PUBLIC
 	${PROJECT_SOURCE_DIR}/gui/include
 	)

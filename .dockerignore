@@ -1,0 +1,16 @@
+.vscode/
+build/
+Debug/
+Release/
+node_modules/
+yarn.lock
+.cache/
+graph_info.json
+.gdb_history
+perf.data*
+valgrind/
+compile_commands.json
+
+Dockerfile
+build_n_run.sh
+

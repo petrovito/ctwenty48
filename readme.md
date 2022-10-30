@@ -13,26 +13,35 @@ The implementation uses convolutional neural networks (tensorflow/keras) and ite
 TODO extend this section
 
 ## GUI
-This repo contains a GUI part, as well.
+This repo contains a GUI app, as well. 
+
+I am by no mean an UI developer, so esthetics was no priority when writing the code.
+
+Focus was put on designing the app in a way where the UI does not get stuck while waiting on backend operations.
 
 ## Howto Build&Run
+You can build and run the gui app by running `./build_n_run.sh`. It uses internally the build steps described in `Dockerfile`.
+
+### Building the apps
 Currently building the apps requires Ubuntu 22.04.
-Running the GUI app requires X11/xorg packages installed.
 
-Other dependencies are pulled in from conan recipes, either defined here in the `./conan ` folder or from Conan Central. Therefore a conan installation is also required.
+Running the GUI app requires X11/xorg packages installed (most of those are installed by conan).
 
-Try (when in doubt have a look at the provided github action):
+Other dependencies are pulled in from conan recipes, either defined here in the `./conan` folder or from Conan Central. Therefore a conan installation is also required.
+
+Try (when in doubt have a look at the provided github action/dockerfile):
 ```
+sudo apt install libxft-dev
 conan create ./conan/tensorflow
 conan create ./conan/cppflow
 conan create ./conan/csv-parser
+conan create ./conan/nana
 mkdir build && cd build
+conan install ../gui --build=missing
 cmake .. -DBUILD_GUI=1
 make -j6
 ```
-Then run the binary `bin/ctwenty48_gui`. You might need to specify the folder containing the tensorflow libraries for the linker, they are most likely located here: `~/.conan/data/tensorflow/2.10/_/_/package/062863c92a5a0a247840166e9f84ebe8d10786b9/lib/`.
-
- 
+Then run the binary `bin/ctwenty48_gui`. 
 
 ## TODOS
 * Extend iterative searching to depend on intermittent node evaluations.
