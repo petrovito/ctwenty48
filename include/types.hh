@@ -25,6 +25,7 @@ using boost::random::discrete_distribution;
 
 namespace c20::commons {
 
+	extern volatile bool shutting_down;
 
 	typedef uint8_t Number;
 

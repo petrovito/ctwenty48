@@ -12,6 +12,8 @@ using boost::random::uniform_int_distribution;
 
 namespace c20::commons {
 
+	volatile bool shutting_down = false;
+
 //start Game class
 
 	Game::Game()

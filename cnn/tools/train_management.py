@@ -5,7 +5,8 @@ import argparse
 import csv
 import logging
 import subprocess
-from typing import Tuple
+from typing import Tuple, List
+import uuid
 
 import math
 
@@ -61,6 +62,17 @@ def get_parser() -> argparse.ArgumentParser:
     play_games_parser.add_argument('--model-path', type=str)
     play_games_parser.set_defaults(func=run_games_entrypoint)
 
+    iterate_learn_parser = subparsers.add_parser('iterate-learn', 
+            help='Play games with a given model, train model on output' + 
+                 'then repeat with new model.')
+    iterate_learn_parser.add_argument('start_model', type=str)
+    # iterate_learn_parser.add_argument('output-folder', type=str)
+    iterate_learn_parser.add_argument('--num-games', type=int,
+            default=20, help='Num games played before each iterations')
+    iterate_learn_parser.add_argument('--num-iterations', type=int,
+            default=10)
+    iterate_learn_parser.set_defaults(func=iterate_learn_entrypoint)
+
     return parser
 
 
@@ -73,15 +85,17 @@ def play_games(ctwenty_bin: str, random: bool, num_games: str,
     logging.info(('Running {} games in child process, ' +
         'saving game logs to {}').format(num_games, log_path))
 
-    command = [ctwenty_bin, 
-        '--num', num_games, 
-        '--log-path', log_path]
+    if model_path is None:
+        command = [ctwenty_bin, 
+            '--num', num_games, 
+            '--log-path', log_path]
+    else:
+        command = [ctwenty_bin, model_path,
+            '--num', num_games, 
+            '--log-path', log_path]
     if random:
         logging.info("Random games turned on.")
         command.append('--random')
-    if model_path is not None:
-        logging.info("Setting model path to {}".format(model_path))
-        command.append(model_path)
 
     logging.info("Running process: {}".format(command))
     process = subprocess.Popen(command)
@@ -116,13 +130,14 @@ def create_model(version="mv1") -> keras.Model:
         
         model = keras.Model(inputs=input, outputs=output)
         model.compile(optimizer=keras.optimizers.SGD(),
-                      loss=keras.losses.BinaryCrossentropy())
+                      loss=keras.losses.MeanSquaredError())
+                      # loss=keras.losses.BinaryCrossentropy())
         logging.info('Model compiled.')
         return model
     raise Exception("Unknown version: " + str(version))
 
 
-def train_model(model: keras.Model, x: np.array, y: np.array):
+def train_model(model: keras.Model, x: np.array, y: np.array, epochs=10):
     input_size = y.shape[0]
     test_size = input_size // 6
 
@@ -133,7 +148,7 @@ def train_model(model: keras.Model, x: np.array, y: np.array):
     logging.info('Start fitting model.')
     model.fit(x=train_x, y=train_y,
               batch_size=512,
-              epochs=10,
+              epochs=epochs,
               shuffle=True,
               validation_data=(test_x, test_y))
     logging.info('Model fitted.')
@@ -143,25 +158,37 @@ def save_model(model: keras.Model, model_path: str):
     model.save(model_path, save_format='tf')
     logging.info('Model saved.')
 
-def np_array_from_csv(input_csv_path: str) -> Tuple[np.array, np.array]:
-    input_vecs = pd.read_csv(input_csv_path)
-    x = input_vecs.iloc[:, :-1]
-    y = input_vecs.iloc[:, -1:]
+
+def np_array_from_csvs(input_csv_paths: List[str]) -> Tuple[np.array, np.array]:
+    x_list, y_list = [], []
+    for path in input_csv_paths:
+        pd_array = pd.read_csv(path)
+        x = pd_array.iloc[:, :-1]
+        y = pd_array.iloc[:, -1:]
+        x_list.append(np.array(x))
+        y_list.append(np.array(y))
+    x, y = np.concatenate(x_list), np.concatenate(y_list)
     logging.info('input dims: [{}, {}]'.format(x.shape, y.shape))
-    return np.array(x), np.array(y)
+    return x, y
 
 
-def new_model_from_csv(model_path: str, input_csv_path: str, model_version: str):
+def new_model_from_csvs(model_path: str, input_csv_paths: List[str], model_version: str,
+        epochs=10):
     """
     Creates new model from scratch, and trains it on the data
     from the passed CSV file.
     """
     logging.info('create new model from {} at {}'
-            .format(input_csv_path, model_path))
-    x, y = np_array_from_csv(input_csv_path)
+            .format(input_csv_paths, model_path))
+    x, y = np_array_from_csvs(input_csv_paths)
     model = create_model(model_version)
-    train_model(model, np.array(x), np.array(y))
+    train_model(model, np.array(x), np.array(y), epochs=epochs)
     save_model(model, model_path)
+
+
+def new_model_from_csv(model_path: str, input_csv_path: str, model_version: str,
+        epochs=10):
+    new_model_from_csvs(model_path, (input_csv_path, ), model_version, epochs)
 
 
 def train_existing_model_from_csv(input_model_path: str, output_model_path: str,
@@ -170,7 +197,7 @@ def train_existing_model_from_csv(input_model_path: str, output_model_path: str,
             .format(input_model_path, input_csv_path, output_model_path))
 
     model = keras.models.load_model(input_model_path)
-    x, y = np_array_from_csv(input_csv_path)
+    x, y = np_array_from_csvs(tuple(input_csv_path))
     train_model(model, np.array(x), np.array(y))
     save_model(model, output_model_path)
 
@@ -248,7 +275,7 @@ def transform_vv3(game_log_path: str, dataset_path: str):
             in_rows.append(in_row)
             
     log_max = math.log(max_game_length)
-    linear_cutoff = 120
+    linear_cutoff = 200
     cutoff_multiplier = math.log(linear_cutoff) / log_max / linear_cutoff
 
     out_row_count = 0
@@ -267,6 +294,40 @@ def transform_vv3(game_log_path: str, dataset_path: str):
             out_row_count += 1
     return out_row_count
 
+
+def iterate_learn(start_model_path: str, num_games: int, num_iterations: int):
+    binary_path = 'Release/bin/ctwenty48'
+
+    iteration_uuid = str(uuid.uuid4())
+    data_folder = 'cnn/train_data/' + iteration_uuid
+    models_folder = 'cnn/models/' + iteration_uuid
+
+    os.mkdir(data_folder)
+    os.mkdir(models_folder)
+
+    old_model_path = start_model_path
+    dataset_path_list = []
+    for it in range(num_iterations):
+        # play games with model from previous iterations
+        log_path = data_folder + '/game_' + str(it) + '.csv'
+        play_games(binary_path, False, str(num_games), log_path, old_model_path)
+        print_basic_stats(log_path, num_games, it)
+        #transform game logs
+        dataset_path = data_folder + '/data_' + str(it) + '.csv'
+        dataset_path_list.append(dataset_path)
+        transform_game_log(log_path, dataset_path, 'vv3')
+        #train new model
+        new_model_path= models_folder + '/' + str(it)
+        new_model_from_csvs(new_model_path, dataset_path_list, 'mv2', 50)
+
+        old_model_path = new_model_path
+
+
+def print_basic_stats(log_path: str, num_games: int, iteration: int):
+    with open(log_path, 'r') as fp:
+        num_lines = sum(1 for line in fp)
+    logging.info('Iteration no. {} averaged {} moves.'.format(iteration, 
+            num_lines / num_games))
 
 #entrypoints
 
@@ -287,6 +348,9 @@ def run_games_entrypoint(args):
 def train_model_entrypoint(args):
     train_existing_model_from_csv(args.input_model_path, args.output_model_path,
             args.input_csv_path)
+
+def iterate_learn_entrypoint(args):
+    iterate_learn(args.start_model, args.num_games, args.num_iterations)
 
 
 def main():

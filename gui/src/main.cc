@@ -10,8 +10,8 @@ int main()
 	auto pos = c20::commons::Position::from_str("1111|2222|3333|4444");
 	window->set_position(pos);
 
-	std::shared_ptr<c20::gui::GUI> gui =
-		std::shared_ptr<c20::gui::GUI>(new c20::gui::GUI(window.get()));
+	std::shared_ptr<c20::gui::BackendConnector> gui =
+		std::shared_ptr<c20::gui::BackendConnector>(new c20::gui::BackendConnector(window.get()));
 
 	window->set_handler(gui);
 	std::shared_ptr<c20::ui::UIHandler> ui = gui;
