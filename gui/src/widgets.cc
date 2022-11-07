@@ -138,19 +138,19 @@ namespace c20::gui {
 	}
 
 
-	void C2048Window::set_handler(std::shared_ptr<BackendConnector>& _handler)
+	void C2048Window::set_handler(FrontendConnector* _handler)
 	{
 		handler = _handler;
 		control_panel.set_handler(_handler);
 	}
 
-	void ControlPanel::set_handler(std::shared_ptr<BackendConnector>& _handler)
+	void ControlPanel::set_handler(FrontendConnector* _handler)
 	{
 		handler = _handler;
 		main_tab.set_handler(_handler);
 	}
 
-	void MainTab::set_handler(std::shared_ptr<BackendConnector>& _handler)
+	void MainTab::set_handler(FrontendConnector* _handler)
 	{
 		handler = _handler;
 	}

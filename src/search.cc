@@ -23,7 +23,7 @@ namespace c20::search {
 	Node::Node() : pos({}), is_final(false), is_over(false) {}
 
 
-	GraphSearcher::GraphSearcher(NumberPopper& _popper, NodeContainer* nc) :
+	GraphSearcher::GraphSearcher(NumberPopper* _popper, NodeContainer* nc) :
 		popper(_popper), node_container(nc) { }
 
 
@@ -130,12 +130,12 @@ namespace c20::search {
 		return game_tree->root_node()->best_dir;
 	}
 
-#include <iostream>
-	using namespace std;
 //SearchManager class
+
+	
 	
 	SearchManager::SearchManager(NodeEvaluator* _node_eval,
-			NumberPopper _popper) : 
+			NumberPopper* _popper) : 
 		node_container(new NodeContainer()),
 		graph_searcher(new GraphSearcher(_popper, node_container)), 
 		graph_evaluator(new GraphEvaluator()),
@@ -143,12 +143,6 @@ namespace c20::search {
 
 	UserMove SearchManager::make_move()
 	{
-		/* for (int i = 0; i < 16; i++) { */
-		/* 	if (i %4 ==0) cout << '|'; */
-		/* 	cout <<int(pos[i]); */
-		/* } */
-		/* cout<<endl; */
-
 		node_container->reset(pos);
 
 		for (int i = 0; i < 24; i++) {
@@ -156,7 +150,6 @@ namespace c20::search {
 			int new_nodes = graph_searcher->search_level();
 			if (new_nodes == 0) break;
 		}
-		/* cout << "   " << node_container->usernode_count() << "   " << endl; */
 		
 		auto final_nodes = node_container->get_final_nodes();
 		node_eval->batch_evaluate(final_nodes);
@@ -263,7 +256,7 @@ namespace c20::search {
 		//if random node was already contained the children are populated already
 		if (random_node->children.size()) return random_node;
 		
-		for (auto [prob, child_pos]: popper.dist_from(pos, zeros))
+		for (auto [prob, child_pos]: popper->dist_from(pos, zeros))
 		{
 			auto child_node = node_container->push_usernode(child_pos);
 			random_node->children.push_back({prob, child_node});

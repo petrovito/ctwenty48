@@ -32,26 +32,21 @@ int main(int argc, char** args) {
 
 	cout<<"Running ctwenty48."<<endl;
 
-
-	shared_ptr<c20::selectors::MoveSelector> move_selector;
-	shared_ptr<c20::ui::UIHandler> ui;
-	shared_ptr<c20::core::GamePlayer> game_player;
+	c20::deps::EnvSpecs specs;
 
 
 	if (!vm.count("random")) 
 	{
-		c20::search::NodeEvaluator* node_eval =
-			c20::cnn::NeuralEvaluator::load_from(vm["model-path"].as<string>());
-		c20::commons::NumberPopper popper;
-		move_selector.reset(new c20::search::SearchManager(node_eval, popper));
-		ui.reset(new c20::ui::NoopUI());
+		specs.move_selector = c20::deps::SearchManager;
+		specs.nn_model_path = vm["model-path"].as<string>();
 	}
 	else 
 	{
-		move_selector.reset(new c20::selectors::RandomSelector());
-		ui.reset(new c20::ui::NoopUI());
+		specs.move_selector = c20::deps::RandomSelector;
 	}
-	game_player.reset(new c20::core::GamePlayer(ui, move_selector));
+
+	c20::deps::Environment env(specs);
+
 
 	auto log_path = vm["log-path"].as<string>();
 	boost::filesystem::path p(log_path);
@@ -64,8 +59,7 @@ int main(int argc, char** args) {
 		return 1;
 	}
 
-	c20::core::Environment env{.move_selector=move_selector, .ui=ui, .game_player=game_player};
-	env.play_games_and_quit(vm["num"].as<int>(), log_path);
+	env.play_games(vm["num"].as<int>(), log_path);
 }
 
 

@@ -14,7 +14,7 @@ namespace c20::search {
 	{
 		NodeContainer* node_container = new NodeContainer();
 		NumberPopper popper;
-		GraphSearcher searcher(popper, node_container);
+		GraphSearcher searcher(&popper, node_container);
 		
 		Position pos = Position::from_str("3434|5656|3434|0000");
 		node_container->reset(pos);

@@ -4,6 +4,7 @@ add_executable(ctwenty48_gui
 	src/main.cc
 	src/gui.cc
 	src/widgets.cc
+	src/gui_env.cc
 	)
 
 target_link_libraries(ctwenty48_gui PUBLIC

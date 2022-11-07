@@ -145,12 +145,15 @@ namespace c20::search {
 	class GraphSearcher 
 	{
 		private:
-			NumberPopper popper;
+			NumberPopper *popper;
 			NodeContainer *node_container;
 
 			RandomNode* random_node(Position pos, ZeroIndices& zeros);
+
+			template<typename UiEnv> friend class deps::Environment;
 		public:
-			GraphSearcher(NumberPopper&, NodeContainer*); //gets a copy
+			GraphSearcher() = default;
+			GraphSearcher(NumberPopper*, NodeContainer*); //gets a copy
 			int search_level();
 	};
 
@@ -185,8 +188,11 @@ namespace c20::search {
 			GraphSearcher *graph_searcher;
 			GraphEvaluator *graph_evaluator;
 			NodeEvaluator *node_eval;
+
+			template<typename UiEnv> friend class deps::Environment;
 		public:
-			SearchManager(NodeEvaluator*, NumberPopper);
+			SearchManager() = default;
+			SearchManager(NodeEvaluator*, NumberPopper*);
 			virtual UserMove make_move();
 			void init(); 
 			void set_position(Position);

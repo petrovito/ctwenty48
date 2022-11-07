@@ -20,8 +20,8 @@ namespace c20::core {
 	}
 
 
-	GamePlayer::GamePlayer(std::shared_ptr<ui::UIHandler>& _ui,
-			   std::shared_ptr<selectors::MoveSelector>& _move_selector) : 
+	GamePlayer::GamePlayer(ui::UIHandler* _ui,
+			   selectors::MoveSelector* _move_selector) : 
 		ui(_ui), move_selector(_move_selector), current_state(WAITING) {}
 
 
@@ -34,8 +34,6 @@ namespace c20::core {
 
 	std::unique_ptr<Game> GamePlayer::play_a_game()
 	{
-		assert(move_selector.get());
-		assert(ui.get());
 		StateLocker state_lock(current_state);
 
 		current_game = std::unique_ptr<Game>(Game::start_game());

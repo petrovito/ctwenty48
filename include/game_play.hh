@@ -21,14 +21,16 @@ namespace c20::core {
 	{
 		private:
 			std::unique_ptr<Game> current_game;
-			std::shared_ptr<selectors::MoveSelector> move_selector;
-			std::shared_ptr<ui::UIHandler> ui;
+			selectors::MoveSelector* move_selector;
+			ui::UIHandler* ui;
 			std::atomic<State> current_state;
 
 			void set_position_for_handlers(const Position&);
+
+			template<typename UiEnv> friend class deps::Environment;
 		public:
-			GamePlayer(std::shared_ptr<ui::UIHandler>&,
-					std::shared_ptr<selectors::MoveSelector>&);
+			GamePlayer() = default;
+			GamePlayer(ui::UIHandler*, selectors::MoveSelector*);
 			/** Dumb stateless play one game method. */
 			std::unique_ptr<Game> play_a_game();
 	};

@@ -22,6 +22,12 @@
 using boost::random::mt19937;
 using boost::random::discrete_distribution;
 
+namespace c20::deps { 
+	class NoopUiEnv;
+	template<typename UiEnv=NoopUiEnv>
+	class Environment;
+}
+	
 
 namespace c20::commons {
 

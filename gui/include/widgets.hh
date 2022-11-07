@@ -16,7 +16,7 @@
 
 namespace c20::gui {
 
-	class BackendConnector;
+	class FrontendConnector;
 
 	class TablePanel : public nana::panel<false>
 	{
@@ -38,10 +38,10 @@ namespace c20::gui {
 
 			nana::button start_btn;
 
-			std::shared_ptr<BackendConnector> handler;
+			FrontendConnector* handler;
 		public:
 			MainTab(nana::window);
-			void set_handler(std::shared_ptr<BackendConnector>&);
+			void set_handler(FrontendConnector*);
 	};
 
 	class HistoryTab : public nana::panel<false>
@@ -62,10 +62,10 @@ namespace c20::gui {
 			MainTab main_tab;
 			HistoryTab history_tab;
 
-			std::shared_ptr<BackendConnector> handler;
+			FrontendConnector* handler;
 		public:
 			ControlPanel(nana::window);
-			void set_handler(std::shared_ptr<BackendConnector>&);
+			void set_handler(FrontendConnector*);
 	};
 
 
@@ -78,11 +78,11 @@ namespace c20::gui {
 			TablePanel table_panel;
 			ControlPanel control_panel;
 
-			std::shared_ptr<BackendConnector> handler;
+			FrontendConnector* handler;
 		public:
 			C2048Window();
 
-			void set_handler(std::shared_ptr<BackendConnector>&);
+			void set_handler(FrontendConnector*);
 			void do_show();
 			void set_position(const commons::Position&);
 	};
