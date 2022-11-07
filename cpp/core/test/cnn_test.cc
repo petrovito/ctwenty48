@@ -25,7 +25,7 @@ namespace c20::cnn {
 
 	TEST(CnnTest, EvaluatePos)
 	{
-		auto evaluator = NeuralEvaluator::load_from("cnn/models/v1");
+		auto evaluator = NeuralEvaluator::load_from("neural-net/models/v1");
 		
 		EVAL("1234|5678|0000|0001");
 		EVAL("1234|5678|9371|0001");

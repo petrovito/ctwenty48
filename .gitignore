@@ -7,8 +7,8 @@ yarn.lock
 .cache/
 graph_info.json
 .gdb_history
-cnn/models/
-cnn/train_data/
+neural-net/models/
+neural-net/train_data/
 perf.data*
 valgrind/
 compile_commands.json

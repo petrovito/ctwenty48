@@ -37,17 +37,19 @@ conan create ./conan/cppflow
 conan create ./conan/csv-parser
 conan create ./conan/nana
 mkdir build && cd build
-conan install ../gui --build=missing
-cmake .. -DBUILD_GUI=1
+conan install ../cpp/gui_app --build=missing
+conan install ../cpp/core --build=missing
+cmake ../cpp -DBUILD_GUI=1
 make -j6
 ```
-Then run the binary `bin/ctwenty48_gui`. 
+Then run the binary `gui_app/bin/ctwenty48_gui`. 
 
 ## TODOS
 * Extend iterative searching to depend on intermittent node evaluations.
 * Make GUI more userfriendly.
 * Add Dockerfile, for running application.
-* Extend CNN to encapsulate the geometry of the board. 
+* Extend neural nets to encapsulate the geometry of the board. 
+* Add docs
 
 ## CI/CD
 Unit tests/Github actions results: ![Build status](https://github.com/petrovito/ctwenty48/actions/workflows/cmake.yml/badge.svg)

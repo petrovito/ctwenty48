@@ -18,16 +18,20 @@ RUN conan create conan/cppflow
 RUN conan create conan/csv-parser
 RUN conan create conan/nana
 
-RUN mkdir gui
-ADD gui/conanfile.txt gui/conanfile.txt
+RUN mkdir gui_app && mkdir core
+ADD cpp/gui_app/conanfile.txt gui_app/conanfile.txt
+ADD cpp/core/conanfile.txt core/conanfile.txt
 RUN mkdir build && cd build \
-	conan install ../gui --build=missing
+	conan install ../gui_app --build=missing && \
+	conan install ../core --build=missing
+
+ADD neural-net/models/v1 neural-net/models/v1
 
 #build
-ADD . .
+ADD cpp/ .
 RUN cd build && \
 	cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_GUI=1 .. && \
 	make -j6
 
-CMD build/bin/ctwenty48_gui
+CMD build/gui_app/bin/ctwenty48_gui
 

@@ -58,7 +58,7 @@ def get_parser() -> argparse.ArgumentParser:
     play_games_parser.add_argument('--out-path', type=str, 
             default=default_train_data_dir + 'random_games.csv')
     play_games_parser.add_argument('--ctwenty_bin', type=str,
-            default='Release/bin/ctwenty48')
+            default='Release/headless_app/ctwenty48')
     play_games_parser.add_argument('--model-path', type=str)
     play_games_parser.set_defaults(func=run_games_entrypoint)
 
@@ -296,7 +296,7 @@ def transform_vv3(game_log_path: str, dataset_path: str):
 
 
 def iterate_learn(start_model_path: str, num_games: int, num_iterations: int):
-    binary_path = 'Release/bin/ctwenty48'
+    binary_path = 'Release/headless_app/ctwenty48'
 
     iteration_uuid = str(uuid.uuid4())
     data_folder = 'cnn/train_data/' + iteration_uuid

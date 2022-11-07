@@ -6,7 +6,7 @@
 #include "ui.hh"
 #include <boost/filesystem/file_status.hpp>
 #include <boost/program_options/value_semantic.hpp>
-#include <env/environment.hh>
+#include <environment.hh>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <memory>
@@ -22,7 +22,7 @@ int main(int argc, char** args) {
 		("random", "random games")
 		("num", po::value<int>()->default_value(1), "number of games to play")
 		("log-path", po::value<string>()->default_value("/dev/stdout"), "game logs path")
-		("model-path", po::value<string>()->default_value("cnn/models/v1"), "model path")
+		("model-path", po::value<string>()->default_value("neural-net/models/v1"), "model path")
 		;
 
 	po::variables_map vm;
