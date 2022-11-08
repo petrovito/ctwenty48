@@ -1,6 +1,6 @@
 #pragma once
 
-#include "oneapi/tbb/concurrent_queue.h"
+#include <blockingconcurrentqueue.h>
 #include "types.hh"
 #include "widgets.hh"
 #include <memory>
@@ -52,7 +52,7 @@ namespace c20::gui {
 		GuiResponse answer;
 	};
 
-	typedef tbb::concurrent_bounded_queue<GuiMessage> message_q;
+	typedef moodycamel::BlockingConcurrentQueue<GuiMessage> message_q;
 
 	enum AppComponent
 	{
@@ -87,7 +87,7 @@ namespace c20::gui {
 	{
 		private:
 			GuiMessageChannel* channel;
-			std::unique_ptr<std::thread> msg_receiver_thread;
+			std::thread* msg_receiver_thread;
 
 			void receive_messages();
 			void init();
@@ -95,6 +95,7 @@ namespace c20::gui {
 			friend class deps::GuiEnv;
 		public:
 			BackendConnector() = default;
+			virtual ~BackendConnector();
 
 			virtual void set_position(const Position&);
 			virtual void game_over();
@@ -137,7 +138,7 @@ namespace c20::gui {
 		private:
 			GuiMessageChannel* channel;
 			StateInfoHandler* handler;
-			std::unique_ptr<std::thread> msg_receiver_thread;
+			std::thread* msg_receiver_thread;
 			
 			void receive_messages();
 			void init();
@@ -145,6 +146,7 @@ namespace c20::gui {
 			friend class deps::GuiEnv;
 		public:
 			FrontendConnector() = default;
+			virtual ~FrontendConnector();
 			void play_a_game();
 			void exit();
 	};

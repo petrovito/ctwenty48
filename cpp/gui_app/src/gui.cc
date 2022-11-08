@@ -1,13 +1,17 @@
 #include "game_play.hh"
 #include "types.hh"
 #include <algorithm>
+#include <cstdlib>
 #include <gui.hh>
 #include <boost/asio.hpp>
 
 #include <future>
 #include <memory>
+#include <nana/gui/programming_interface.hpp>
 #include <stdexcept>
 #include <thread>
+#include <chrono>
+using namespace std::chrono_literals;
 
 #include <spdlog/spdlog.h>
 
@@ -17,12 +21,12 @@ namespace c20::gui {
 
 	void GuiMessageChannel::message_to(AppComponent comp, GuiMessage msg)
 	{
-		message_q_pair[comp].push(msg);
+		message_q_pair[comp].enqueue(msg);
 	}
 
 	bool GuiMessageChannel::message_from(AppComponent comp, GuiMessage& msg)
 	{
-		return message_q_pair[1-comp].pop(msg);
+		return message_q_pair[1-comp].wait_dequeue_timed(msg, .5s);
 	}
 
 //BackendConnector
@@ -36,8 +40,8 @@ namespace c20::gui {
 
 	void BackendConnector::init()
 	{ 
-		msg_receiver_thread = std::make_unique<std::thread>(
-				&BackendConnector::receive_messages, this);
+		msg_receiver_thread = 
+			new std::thread(&BackendConnector::receive_messages, this);
 	}
 
 
@@ -46,7 +50,7 @@ namespace c20::gui {
 		spdlog::debug("Starting backend receive msgs loop.");
 		while (!shutting_down) {
 			GuiMessage message;
-			channel->message_from(FRONTEND, message);
+			if (!channel->message_from(FRONTEND, message)) continue;
 			spdlog::debug("Message from frontend received. Action {}", message.action);
 			switch (message.action) {
 			case START_GAME:
@@ -67,13 +71,19 @@ namespace c20::gui {
 		spdlog::debug("Backend receive mgs loop shut down.");
 	}
 
+	BackendConnector::~BackendConnector()
+	{
+		msg_receiver_thread->join();
+		delete msg_receiver_thread;
+	}
+
 //FrontendConnector
 
 
 	void FrontendConnector::init()
 	{ 
-		msg_receiver_thread = std::make_unique<std::thread>(
-				&FrontendConnector::receive_messages, this);
+		msg_receiver_thread = 
+			new std::thread(&FrontendConnector::receive_messages, this);
 	}
 
 	void FrontendConnector::receive_messages()
@@ -81,7 +91,7 @@ namespace c20::gui {
 		spdlog::debug("Starting frontend receive msgs loop.");
 		while (!shutting_down) {
 			GuiMessage message;
-			channel->message_from(BACKEND, message);
+			if (!channel->message_from(BACKEND, message)) continue;
 			switch (message.action) {
 			case SET_POSITION:
 				handler->set_position(message.pos);
@@ -95,6 +105,8 @@ namespace c20::gui {
 	{
 		spdlog::info("Requesting exit");
 		channel->message_to(BACKEND, {.action=EXIT_APP});
+		std::this_thread::sleep_for(1s);
+		/* std::exit(0); */
 	}
 
 	void FrontendConnector::play_a_game()
@@ -103,6 +115,10 @@ namespace c20::gui {
 		channel->message_to(BACKEND, {.action=START_GAME});
 	}
 
+	FrontendConnector::~FrontendConnector()
+	{
+		msg_receiver_thread->join();
+	}
 
 //StateInfoHandler
 

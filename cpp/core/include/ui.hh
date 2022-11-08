@@ -15,6 +15,7 @@ namespace c20::ui {
 		public:
 			UIHandler() = default;
 			UIHandler(core::GamePlayer*);
+			virtual ~UIHandler() = default;
 			virtual void set_position(const Position&) = 0;
 			virtual void game_over() = 0;
 			virtual void set_game_player(core::GamePlayer*);
