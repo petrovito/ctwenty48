@@ -16,7 +16,8 @@ namespace c20::deps {
 			std::unique_ptr<gui::BackendConnector> backend_connector;
 			std::unique_ptr<gui::StateInfoHandler> state_info_handler;
 		public:
-			GuiEnv();
+			void instantiate_beans();
+			void wire_beans(core::GamePlayer*);
 			ui::UIHandler* ui_handler();
 	};
 

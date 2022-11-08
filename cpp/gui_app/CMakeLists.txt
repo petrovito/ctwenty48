@@ -34,7 +34,6 @@ add_executable(ctwenty48_gui
 
 target_link_libraries(ctwenty48_gui PUBLIC
 	ctwenty48_core
-	CONAN_PKG::onetbb
 	CONAN_PKG::nana    
 	)
 target_include_directories(ctwenty48_gui PUBLIC

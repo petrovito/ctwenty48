@@ -33,7 +33,8 @@ namespace c20::deps {
 		private:
 			std::unique_ptr<ui::NoopUI> noop_ui;
 		public:
-			NoopUiEnv();
+			void wire_beans(core::GamePlayer*);
+			void instantiate_beans();
 			ui::UIHandler* ui_handler();
 	};
 
@@ -82,6 +83,8 @@ namespace c20::deps {
 								cnn::NeuralEvaluator::load_from(specs.nn_model_path));
 						break;
 				}
+
+				ui_env.instantiate_beans();
 			}
 
 			void wire_beans()
@@ -101,6 +104,8 @@ namespace c20::deps {
 
 				game_player->move_selector = move_selector;
 				game_player->ui = ui_env.ui_handler();
+
+				ui_env.wire_beans(game_player.get());
 			}
 		public:
 			Environment(const EnvSpecs& _specs) :

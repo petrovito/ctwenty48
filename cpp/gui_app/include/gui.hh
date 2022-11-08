@@ -18,6 +18,7 @@ namespace c20::gui {
 	{
 		//from frontend
 		START_GAME,
+		EXIT_APP,
 
 		//from backend
 		SET_POSITION
@@ -67,7 +68,7 @@ namespace c20::gui {
 	class GuiMessageChannel
 	{
 		private:
-			message_q message_q_pair[2];
+			std::array<message_q, 2> message_q_pair;
 		public:
 			GuiMessageChannel() = default;
 			void message_to(AppComponent, GuiMessage msg);
@@ -75,7 +76,7 @@ namespace c20::gui {
 			 *  Read a message from the specified app component.
 			 *  Blocks until a message is available.
 			 */
-			GuiMessage message_from(AppComponent);
+			bool message_from(AppComponent, GuiMessage&);
 	};
 
 	/**
@@ -145,6 +146,7 @@ namespace c20::gui {
 		public:
 			FrontendConnector() = default;
 			void play_a_game();
+			void exit();
 	};
 
 

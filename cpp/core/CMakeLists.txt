@@ -25,6 +25,7 @@ target_link_libraries(ctwenty48_core PUBLIC
     CONAN_PKG::csv-parser
     CONAN_PKG::cppflow
 	CONAN_PKG::spdlog
+	CONAN_PKG::onetbb
 	)
 target_include_directories(ctwenty48_core PUBLIC 
 	${CONAN_INCLUDE_DIRS_GTEST}

@@ -1,3 +1,6 @@
+#include <boost/bind/bind.hpp>
+#include <cstdlib>
+#include <exception>
 #include <widgets.hh>
 #include <gui.hh>
 
@@ -99,9 +102,7 @@ namespace c20::gui {
 		)");
 		btn_group["buttons"] << start_btn;
 
-		start_btn.events().click([this] (auto& var) {
-				this->handler->play_a_game();
-		});
+		start_btn.events().click( [this](){handler->play_a_game();});
 	}
 
 	HistoryTab::HistoryTab(nana::window fm) :
@@ -121,6 +122,7 @@ namespace c20::gui {
 		place.div("horizontal <table margin=3 weight=400><control>");
 		place["table"] << table_panel;
 		place["control"] << control_panel;
+		events().unload([this](){handler->exit();});
 	}
 
 
