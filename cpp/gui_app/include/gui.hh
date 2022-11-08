@@ -89,11 +89,11 @@ namespace c20::gui {
 			std::unique_ptr<std::thread> msg_receiver_thread;
 
 			void receive_messages();
+			void init();
 
 			friend class deps::GuiEnv;
 		public:
 			BackendConnector() = default;
-			BackendConnector(core::GamePlayer*, GuiMessageChannel*);
 
 			virtual void set_position(const Position&);
 			virtual void game_over();
@@ -139,11 +139,11 @@ namespace c20::gui {
 			std::unique_ptr<std::thread> msg_receiver_thread;
 			
 			void receive_messages();
+			void init();
 
 			friend class deps::GuiEnv;
 		public:
 			FrontendConnector() = default;
-			FrontendConnector(GuiMessageChannel*, StateInfoHandler*);
 			void play_a_game();
 	};
 

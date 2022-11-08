@@ -7,6 +7,8 @@
 #include <memory>
 #include <thread>
 
+#include <spdlog/spdlog.h>
+
 namespace c20::gui {
 
 //GuiMessageChannel
@@ -32,9 +34,7 @@ namespace c20::gui {
 		channel->message_to(FRONTEND, {.action=SET_POSITION, .pos=pos});
 	}
 
-	BackendConnector::BackendConnector(core::GamePlayer* _game_player,
-			GuiMessageChannel* _channel) :
-		UIHandler(_game_player), channel(_channel)
+	void BackendConnector::init()
 	{ 
 		msg_receiver_thread = std::make_unique<std::thread>(
 				&BackendConnector::receive_messages, this);
@@ -45,8 +45,10 @@ namespace c20::gui {
 	{
 		while (!shutting_down) {
 			GuiMessage message = channel->message_from(FRONTEND);
+			SPDLOG_DEBUG("Message from frontend received. Action {}", message.action);
 			switch (message.action) {
 			case START_GAME:
+				SPDLOG_INFO("Frontend request: Start a game.");
 				game_player->play_a_game(); //TODO async
 				break;
 			}
@@ -56,9 +58,7 @@ namespace c20::gui {
 //FrontendConnector
 
 
-	FrontendConnector::FrontendConnector(GuiMessageChannel* _channel, 
-			StateInfoHandler* _handler) :
-		channel(_channel), handler(_handler)
+	void FrontendConnector::init()
 	{ 
 		msg_receiver_thread = std::make_unique<std::thread>(
 				&FrontendConnector::receive_messages, this);
@@ -67,7 +67,7 @@ namespace c20::gui {
 	void FrontendConnector::receive_messages()
 	{
 		while (!shutting_down) {
-			GuiMessage message = channel->message_from(FRONTEND);
+			GuiMessage message = channel->message_from(BACKEND);
 			switch (message.action) {
 			case SET_POSITION:
 				handler->set_position(message.pos);
@@ -78,6 +78,7 @@ namespace c20::gui {
 
 	void FrontendConnector::play_a_game()
 	{
+		SPDLOG_INFO("Request to play a game.");
 		channel->message_to(BACKEND, {START_GAME});
 	}
 
