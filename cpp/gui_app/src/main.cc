@@ -15,8 +15,10 @@ int main()
 	c20::deps::Environment<c20::deps::GuiEnv> env(specs);
 
 	auto pos = c20::commons::Position::from_str("0000|0000|0000|0000");
+	auto& state_info = env.ui_env.state_info_handler.get()->state_info;
+	state_info.current_pos.modify(pos);
+
 	auto window = env.ui_env.window.get();
-	window->set_position(pos);
 	window->do_show();
 }
 

@@ -23,11 +23,12 @@ namespace c20::deps {
 		frontend_connector->init();
 
 		state_info_handler->window = window.get();
+		state_info_handler->connector = frontend_connector.get();
 		backend_connector->channel = gui_channel.get();
 		backend_connector->game_player = game_player;
 		backend_connector->init();
 
-		window->set_handler(frontend_connector.get());
+		window->set_handler(state_info_handler.get());
 	}
 
 	ui::UIHandler* GuiEnv::ui_handler() { return backend_connector.get(); }

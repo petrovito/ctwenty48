@@ -101,32 +101,34 @@ namespace c20::gui {
 		spdlog::debug("Frontend receive mgs loop shut down.");
 	}
 
-	void FrontendConnector::exit()
-	{
-		spdlog::info("Requesting exit");
-		channel->message_to(BACKEND, {.action=EXIT_APP});
-		std::this_thread::sleep_for(1s);
-		/* std::exit(0); */
-	}
-
-	void FrontendConnector::play_a_game()
-	{
-		spdlog::info("Request to play a game.");
-		channel->message_to(BACKEND, {.action=START_GAME});
-	}
 
 	FrontendConnector::~FrontendConnector()
 	{
 		msg_receiver_thread->join();
 	}
 
+	void FrontendConnector::message(const GuiMessage& msg)
+	{
+		channel->message_to(BACKEND, msg);
+	}
+
 //StateInfoHandler
 
 	void StateInfoHandler::set_position(const Position& pos)
 	{
-		state_info.current_pos = pos;
-		window->set_position(pos);
+		state_info.current_pos.modify(pos);
 	}
 
+	void StateInfoHandler::exit()
+	{
+		spdlog::info("Requesting exit");
+		connector->message({.action=EXIT_APP});
+	}
+
+	void StateInfoHandler::play_a_game()
+	{
+		spdlog::info("Request to play a game.");
+		connector->message({.action=START_GAME});
+	}
 }
 

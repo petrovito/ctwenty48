@@ -1,6 +1,7 @@
 #pragma once
 
 #include <blockingconcurrentqueue.h>
+#include "observable.hh"
 #include "types.hh"
 #include "widgets.hh"
 #include <memory>
@@ -108,7 +109,7 @@ namespace c20::gui {
 	 */
 	struct StateInfo
 	{
-		Position current_pos;
+		Observable<Position> current_pos;
 	};
 
 
@@ -121,11 +122,15 @@ namespace c20::gui {
 			C2048Window* window;
 			FrontendConnector* connector;
 
-			StateInfo state_info;
 
 			friend class deps::GuiEnv;
 		public:
+			StateInfo state_info;
+
 			void set_position(const Position&);
+
+			void play_a_game();
+			void exit();
 	};
 
 
@@ -147,8 +152,7 @@ namespace c20::gui {
 		public:
 			FrontendConnector() = default;
 			virtual ~FrontendConnector();
-			void play_a_game();
-			void exit();
+			void message(const GuiMessage&);
 	};
 
 

@@ -60,6 +60,12 @@ namespace c20::gui {
 			}
 	}
 
+	void TablePanel::set_handler(StateInfoHandler *_handler)
+	{
+		_handler->state_info.current_pos.subscribe([this](auto pos){
+				set_position(pos);});
+	}
+
 	ControlPanel::ControlPanel(nana::window fm) :
 		nana::panel<false>(fm),
 		place(*this),
@@ -134,25 +140,20 @@ namespace c20::gui {
 	}
 
 
-	void C2048Window::set_position(const commons::Position& pos) 
-	{
-		table_panel.set_position(pos);
-	}
-
-
-	void C2048Window::set_handler(FrontendConnector* _handler)
+	void C2048Window::set_handler(StateInfoHandler* _handler)
 	{
 		handler = _handler;
 		control_panel.set_handler(_handler);
+		table_panel.set_handler(_handler);
 	}
 
-	void ControlPanel::set_handler(FrontendConnector* _handler)
+	void ControlPanel::set_handler(StateInfoHandler* _handler)
 	{
 		handler = _handler;
 		main_tab.set_handler(_handler);
 	}
 
-	void MainTab::set_handler(FrontendConnector* _handler)
+	void MainTab::set_handler(StateInfoHandler* _handler)
 	{
 		handler = _handler;
 	}

@@ -16,7 +16,7 @@
 
 namespace c20::gui {
 
-	class FrontendConnector;
+	class StateInfoHandler;
 
 	class TablePanel : public nana::panel<false>
 	{
@@ -26,6 +26,7 @@ namespace c20::gui {
 		public:
 			TablePanel(nana::window);
 			void set_position(const commons::Position&);
+			void set_handler(StateInfoHandler*);
 	};
 
 
@@ -38,10 +39,10 @@ namespace c20::gui {
 
 			nana::button start_btn;
 
-			FrontendConnector* handler;
+			StateInfoHandler* handler;
 		public:
 			MainTab(nana::window);
-			void set_handler(FrontendConnector*);
+			void set_handler(StateInfoHandler*);
 	};
 
 	class HistoryTab : public nana::panel<false>
@@ -62,10 +63,10 @@ namespace c20::gui {
 			MainTab main_tab;
 			HistoryTab history_tab;
 
-			FrontendConnector* handler;
+			StateInfoHandler* handler;
 		public:
 			ControlPanel(nana::window);
-			void set_handler(FrontendConnector*);
+			void set_handler(StateInfoHandler*);
 	};
 
 
@@ -78,13 +79,12 @@ namespace c20::gui {
 			TablePanel table_panel;
 			ControlPanel control_panel;
 
-			FrontendConnector* handler;
+			StateInfoHandler* handler;
 		public:
 			C2048Window();
 
-			void set_handler(FrontendConnector*);
+			void set_handler(StateInfoHandler*);
 			void do_show();
-			void set_position(const commons::Position&);
 	};
 		
 
