@@ -94,7 +94,7 @@ namespace c20::gui {
 			if (!channel->message_from(BACKEND, message)) continue;
 			switch (message.action) {
 			case SET_POSITION:
-				handler->set_position(message.pos);
+				stateinfo_handler->set_position(message.pos);
 				break;
 			}
 		}
@@ -116,7 +116,9 @@ namespace c20::gui {
 
 	void StateInfoHandler::set_position(const Position& pos)
 	{
-		state_info.current_pos.modify(pos);
+		state_info.table_pos.modify(pos);
+		state_info.history_view.get().push_pos_and_adjust(pos);
+		state_info.history_view.notify();
 	}
 
 	void StateInfoHandler::exit()
@@ -130,5 +132,6 @@ namespace c20::gui {
 		spdlog::info("Request to play a game.");
 		connector->message({.action=START_GAME});
 	}
+
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <blockingconcurrentqueue.h>
+#include "frontend_game.hh"
 #include "observable.hh"
 #include "types.hh"
 #include "widgets.hh"
@@ -109,7 +110,8 @@ namespace c20::gui {
 	 */
 	struct StateInfo
 	{
-		Observable<Position> current_pos;
+		Observable<Position> table_pos;
+		Observable<GameHistoryView<>> history_view;
 	};
 
 
@@ -142,7 +144,7 @@ namespace c20::gui {
 	{
 		private:
 			GuiMessageChannel* channel;
-			StateInfoHandler* handler;
+			StateInfoHandler* stateinfo_handler;
 			std::thread* msg_receiver_thread;
 			
 			void receive_messages();

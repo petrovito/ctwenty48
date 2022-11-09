@@ -1,6 +1,10 @@
+#include "frontend_game.hh"
 #include <boost/bind/bind.hpp>
 #include <cstdlib>
 #include <exception>
+#include <fmt/core.h>
+#include <memory>
+#include <nana/gui/widgets/label.hpp>
 #include <widgets.hh>
 #include <gui.hh>
 
@@ -31,6 +35,8 @@ namespace c20::gui {
 		0x000000,
 	};
 
+//TablePanel
+
 	TablePanel::TablePanel(nana::window fm) :
 		nana::panel<false>(fm),
 		place(*this)
@@ -60,11 +66,15 @@ namespace c20::gui {
 			}
 	}
 
+
 	void TablePanel::set_handler(StateInfoHandler *_handler)
 	{
-		_handler->state_info.current_pos.subscribe([this](auto pos){
+		_handler->state_info.table_pos.subscribe([this](auto pos){
 				set_position(pos);});
 	}
+
+//ControlPanel
+
 
 	ControlPanel::ControlPanel(nana::window fm) :
 		nana::panel<false>(fm),
@@ -88,11 +98,15 @@ namespace c20::gui {
 
 	}
 
+
+//MainTab
+
 	MainTab::MainTab(nana::window fm) : 
 		nana::panel<false>(fm),
 		place(*this),
 		btn_group(*this, "Game"),
-		start_btn(btn_group, "Start game")
+		start_game_btn(btn_group, "Start game"),
+		bot_btn(btn_group, "Activate bot")
 	{
 		place.div(R"( 
 			vertical 
@@ -103,18 +117,53 @@ namespace c20::gui {
 
 		btn_group.div(R"(
 			<weight=10>
-		    <buttons weight=125 gap=5 margin=20>
+		    <buttons grid=[2,1] weight=250 gap=5 margin=20>
 			<weight=10>
 		)");
-		btn_group["buttons"] << start_btn;
+		btn_group["buttons"] << start_game_btn;
+		btn_group["buttons"] << bot_btn;
+		bot_btn.enabled(false);
 
-		start_btn.events().click( [this](){handler->play_a_game();});
+		start_game_btn.events().click([this](){handler->play_a_game();});
 	}
+
+
+//History
 
 	HistoryTab::HistoryTab(nana::window fm) :
 		nana::panel<false>(fm),
 		place(*this)
-	{}
+	{
+		place.div(R"(
+				<hist grid=[5,10]>
+		)");
+		for (int i = 0; i < 5; i++) {
+			labels.push_back({});
+			for (int j = 0; j < 10; j++) {
+				auto label = 
+					new nana::label(*this, "-");
+				label->text_align(nana::align::center);
+				labels[i].push_back(std::unique_ptr<nana::label>(label));
+			}
+		}
+		for (int j = 0; j < 10; j++) {
+			for (int i = 0; i < 5; i++) {
+				place["hist"] << *labels[i][j];
+			}
+		}		
+	}
+
+	void HistoryTab::update_texts(const GameHistoryView<>& history_view)
+	{
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 10; j++) {
+				labels[i][j]->caption(history_view.label_texts[i][j]);
+			}
+		}
+	}
+
+
+//C2048Window
 
 
 	C2048Window::C2048Window() : 
@@ -151,11 +200,19 @@ namespace c20::gui {
 	{
 		handler = _handler;
 		main_tab.set_handler(_handler);
+		history_tab.set_handler(_handler);
 	}
 
 	void MainTab::set_handler(StateInfoHandler* _handler)
 	{
 		handler = _handler;
+	}
+
+	void HistoryTab::set_handler(StateInfoHandler* _handler)
+	{
+		handler = _handler;
+		handler->state_info.history_view.subscribe(
+				[this](auto var) {update_texts(var);});
 	}
 
 }

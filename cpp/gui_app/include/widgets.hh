@@ -1,5 +1,6 @@
 #pragma once
 
+#include "frontend_game.hh"
 #include <array>
 #include <memory>
 #include <nana/gui.hpp>
@@ -37,7 +38,8 @@ namespace c20::gui {
 
 			nana::group btn_group;
 
-			nana::button start_btn;
+			nana::button start_game_btn;
+			nana::button bot_btn;
 
 			StateInfoHandler* handler;
 		public:
@@ -49,8 +51,14 @@ namespace c20::gui {
 	{
 		private:
 			nana::place place;
+			
+			std::vector<std::vector<std::unique_ptr<nana::label>>> labels;
+
+			StateInfoHandler* handler;
 		public:
 			HistoryTab(nana::window);
+			void set_handler(StateInfoHandler*);
+			void update_texts(const GameHistoryView<>&);
 	};
 
 

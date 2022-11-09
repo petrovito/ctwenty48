@@ -26,6 +26,7 @@ target_link_libraries(ctwenty48_core PUBLIC
     CONAN_PKG::cppflow
 	CONAN_PKG::spdlog
 	CONAN_PKG::concurrentqueue
+	CONAN_PKG::fmt
 	)
 target_include_directories(ctwenty48_core PUBLIC 
 	${CONAN_INCLUDE_DIRS_GTEST}

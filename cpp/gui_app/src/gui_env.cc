@@ -19,7 +19,7 @@ namespace c20::deps {
 	void GuiEnv::wire_beans(core::GamePlayer* game_player)
 	{
 		frontend_connector->channel = gui_channel.get();
-		frontend_connector->handler = state_info_handler.get();
+		frontend_connector->stateinfo_handler = state_info_handler.get();
 		frontend_connector->init();
 
 		state_info_handler->window = window.get();

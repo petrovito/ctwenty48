@@ -15,11 +15,15 @@ namespace c20::gui {
 			{
 				subscribers.emplace_back(sub);
 			}
-			const T& get() const { return obs; }
+			T& get() { return obs; }
 			/** Modifies and notifies. */
 			void modify(const T& new_obs)
 			{
 				obs = new_obs;
+				notify();
+			}
+			void notify()
+			{
 				for (auto& sub: subscribers)
 				{
 					sub(obs);
