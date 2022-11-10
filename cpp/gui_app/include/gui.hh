@@ -136,6 +136,7 @@ namespace c20::gui {
 			void set_position(const Position&);
 			void game_state_changed(const core::GamePlayerState& state);
 
+			void move_history_view(int key);
 			void start_game();
 			void change_bot_state();
 			void exit();

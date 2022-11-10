@@ -5,7 +5,10 @@
 #include <exception>
 #include <fmt/core.h>
 #include <memory>
+#include <nana/basic_types.hpp>
 #include <nana/gui/widgets/label.hpp>
+#include <spdlog/common.h>
+#include <spdlog/spdlog.h>
 #include <widgets.hh>
 #include <gui.hh>
 
@@ -97,6 +100,14 @@ namespace c20::gui {
 			.append("history", history_tab);
 		tab_bar.activated(0);
 
+		//below is super hacky, doesnt feel like nana provides 
+		//better solution for auto focusing something upon selection
+		tab_bar.events().activated([this](const auto& var){
+				if (var.item_pos == 1) { //history tab position is 1
+					history_tab.labels[0][0]->focus();
+				}
+				});
+
 	}
 
 
@@ -150,6 +161,9 @@ namespace c20::gui {
 
 //History
 
+#define not_selected_clr nana::colors::light_gray
+#define selected_clr nana::colors::khaki
+
 	HistoryTab::HistoryTab(nana::window fm) :
 		nana::panel<false>(fm),
 		place(*this)
@@ -162,7 +176,12 @@ namespace c20::gui {
 			for (int j = 0; j < 10; j++) {
 				auto label = 
 					new nana::label(*this, "-");
-				label->text_align(nana::align::center);
+				label->text_align(nana::align::center, nana::align_v::center);
+				label->bgcolor(not_selected_clr);
+				//this hack enables catching events from this tab...
+				//the problem is that labels fully cover the tab
+				label->events().key_press([this](const auto& var){
+						handler->move_history_view((int)var.key);});
 				labels[i].push_back(std::unique_ptr<nana::label>(label));
 			}
 		}
@@ -178,6 +197,9 @@ namespace c20::gui {
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 10; j++) {
 				labels[i][j]->caption(history_view.label_texts[i][j]);
+				if (std::pair(i,j) == history_view.current_pos_coord) {
+					labels[i][j]->bgcolor(selected_clr);
+				} else labels[i][j]->bgcolor(not_selected_clr);
 			}
 		}
 	}

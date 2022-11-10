@@ -57,6 +57,7 @@ namespace c20::gui {
 			std::vector<std::vector<std::unique_ptr<nana::label>>> labels;
 
 			StateInfoHandler* handler;
+			friend class ControlPanel;
 		public:
 			HistoryTab(nana::window);
 			void set_handler(StateInfoHandler*);

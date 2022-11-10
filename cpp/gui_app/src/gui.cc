@@ -199,6 +199,45 @@ namespace c20::gui {
 		state_info.game_state.modify(state);
 	}
 
+
+	void StateInfoHandler::move_history_view(int key) {
+		auto& history_view = state_info.history_view.get();
+		int history_idx = history_view.current_idx();
+		bool changed = false;
+		switch (key) {
+			case 37: //LEFT
+				if (history_idx >= history_view.height()) {
+					history_view.adjust(history_idx -history_view.height());
+					changed = true;
+				}
+				break;
+			case 39: //RIGHT
+				if (history_idx < history_view.size() - history_view.height()) {
+					history_view.adjust(history_idx +history_view.height());
+					changed = true;
+				}
+				break;
+			case 40: //DOWN
+				if (history_idx < history_view.size() -1) {
+					history_view.adjust(history_idx +1);
+					changed = true;
+				}
+				break;
+			case 38: //UP
+				if (history_idx >= 1) {
+					history_view.adjust(history_idx -1);
+					changed = true;
+				}
+				break;
+		}
+		if (changed)
+		{
+			state_info.history_view.notify();
+			state_info.table_pos.modify(history_view.at(
+						history_view.current_idx()).pos);
+		}
+	}
+
 	void StateInfoHandler::exit()
 	{
 		spdlog::info("Requesting exit");

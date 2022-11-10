@@ -17,11 +17,18 @@ namespace c20::gui {
 	class GameHistoryView
 	{
 		private:
-			int current_pos_idx = 0;
 			std::vector<PositionWrapper> history;
+			int current_pos_idx = 0;
 		public:
 			std::pair<int, int> current_pos_coord;
 			std::array<std::array<std::string, M>, N> label_texts;
+
+			int height() const {return M;}
+			int width() const {return N;}
+			size_t size() const {return history.size();}
+			int current_idx() const {return current_pos_idx;}
+			const PositionWrapper& at(int idx) {return history[idx];}
+
 
 			void push_pos_and_adjust(const commons::Position& pos)
 			{
