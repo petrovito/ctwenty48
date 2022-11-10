@@ -1,6 +1,7 @@
 #pragma once
 
 #include "frontend_game.hh"
+#include "game_play.hh"
 #include <array>
 #include <memory>
 #include <nana/gui.hpp>
@@ -45,6 +46,7 @@ namespace c20::gui {
 		public:
 			MainTab(nana::window);
 			void set_handler(StateInfoHandler*);
+			void game_state_changed(const core::GamePlayerState&);
 	};
 
 	class HistoryTab : public nana::panel<false>

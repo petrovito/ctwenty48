@@ -1,6 +1,7 @@
 #include "game_play.hh"
 #include "types.hh"
 #include <algorithm>
+#include <cstddef>
 #include <cstdlib>
 #include <gui.hh>
 #include <boost/asio.hpp>
@@ -16,6 +17,14 @@ using namespace std::chrono_literals;
 #include <spdlog/spdlog.h>
 
 namespace c20::gui {
+
+
+	boost::mt19937_64 key_gen(static_cast<std::uint32_t>(std::time(0)));
+	
+	message_key generate_key()
+	{
+		return static_cast<message_key>(key_gen());
+	}
 
 //GuiMessageChannel
 
@@ -57,9 +66,36 @@ namespace c20::gui {
 				spdlog::info("Frontend request: Start a game.");
 				try {
 					game_player->start_game();
-					game_player->start_bot();
+					channel->message_to(FRONTEND, 
+							{.key=message.key, .is_response=true, .status=OK});
 				} catch (std::runtime_error& e) {
 					SPDLOG_ERROR(e.what());
+					channel->message_to(FRONTEND, 
+							{.key=message.key, .is_response=true, .status=FAILURE});
+				}
+				break;
+			case ACTIVATE_BOT:
+				spdlog::info("Frontend request: Start bot.");
+				try {
+					game_player->start_bot();
+					channel->message_to(FRONTEND, 
+							{.key=message.key, .is_response=true, .status=OK});
+				} catch (std::runtime_error& e) {
+					SPDLOG_ERROR(e.what());
+					channel->message_to(FRONTEND, 
+							{.key=message.key, .is_response=true, .status=FAILURE});
+				}
+				break;
+			case STOP_BOT:
+				spdlog::info("Frontend request: Start bot.");
+				try {
+					game_player->stop_bot();
+					channel->message_to(FRONTEND, 
+							{.key=message.key, .is_response=true, .status=OK});
+				} catch (std::runtime_error& e) {
+					SPDLOG_ERROR(e.what());
+					channel->message_to(FRONTEND, 
+							{.key=message.key, .is_response=true, .status=FAILURE});
 				}
 				break;
 			case EXIT_APP:
@@ -92,6 +128,35 @@ namespace c20::gui {
 		while (!shutting_down) {
 			GuiMessage message;
 			if (!channel->message_from(BACKEND, message)) continue;
+			if (message.is_response) {
+				if (sent_requests.count(message.key)) {
+					GuiMessage request = sent_requests[message.key];
+					sent_requests.erase(message.key);
+					switch (request.action) {
+					case START_GAME:
+						if (message.status == OK) {
+							spdlog::debug("Game has started.");
+							stateinfo_handler->game_state_changed(core::GAME_STARTED);
+						} else spdlog::error("Game couldn't be started.");
+						break;
+					case STOP_BOT:
+						if (message.status == OK) {
+							spdlog::debug("Bot has stopped.");
+							stateinfo_handler->game_state_changed(core::GAME_STARTED);
+						} else spdlog::error("Game couldn't be started.");
+						break;
+					case ACTIVATE_BOT:
+						if (message.status == OK) {
+							spdlog::debug("Bot has started.");
+							stateinfo_handler->game_state_changed(core::BOT_ACTIVATED);
+						} else spdlog::error("Game couldn't be started.");
+						break;
+					}					
+				} else {
+					spdlog::error("No request found with response msg key.");
+				}
+				continue;
+			}
 			switch (message.action) {
 			case SET_POSITION:
 				stateinfo_handler->set_position(message.pos);
@@ -112,6 +177,14 @@ namespace c20::gui {
 		channel->message_to(BACKEND, msg);
 	}
 
+	void FrontendConnector::request(GuiMessage&& msg)
+	{
+		auto key = generate_key();
+		msg.key = key;
+		sent_requests[key] = msg;
+		channel->message_to(BACKEND, msg);
+	}
+
 //StateInfoHandler
 
 	void StateInfoHandler::set_position(const Position& pos)
@@ -121,17 +194,37 @@ namespace c20::gui {
 		state_info.history_view.notify();
 	}
 
+	void StateInfoHandler::game_state_changed(const core::GamePlayerState& state)
+	{
+		state_info.game_state.modify(state);
+	}
+
 	void StateInfoHandler::exit()
 	{
 		spdlog::info("Requesting exit");
 		connector->message({.action=EXIT_APP});
 	}
 
-	void StateInfoHandler::play_a_game()
+	void StateInfoHandler::start_game()
 	{
 		spdlog::info("Request to play a game.");
-		connector->message({.action=START_GAME});
+		connector->request({.action=START_GAME});
 	}
 
+	void StateInfoHandler::change_bot_state()
+	{
+		switch (state_info.game_state.get()) {
+			case core::IDLE:
+				throw std::runtime_error("Game has not started.");
+			case core::GAME_STARTED:
+				spdlog::info("Request to start bot");
+				connector->request({.action=ACTIVATE_BOT});
+				break;
+			case core::BOT_ACTIVATED:
+				spdlog::info("Request to stop bot");
+				connector->request({.action=STOP_BOT});
+				break;
+		}
+	}
 }
 

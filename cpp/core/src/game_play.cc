@@ -11,22 +11,21 @@
 
 namespace c20::core {
 
-	void lock_or_throw(std::atomic<State>& state)
+	void exchange_or_throw(std::atomic<GamePlayerState>& state, GamePlayerState from, GamePlayerState to)
 	{
-		State wait = WAITING;
-		if (!state.compare_exchange_weak(wait, RUNNING))
-			throw std::runtime_error("Lock is already taken.");
+		if (!state.compare_exchange_weak(from, to))
+			throw std::runtime_error("Lock in wrong state..");
 	};
 
-	StateLocker::StateLocker(std::atomic<State>& _state) :
+	StateLocker::StateLocker(std::atomic<GamePlayerState>& _state) :
 		state(_state)
 	{
-		lock_or_throw(state);
+		exchange_or_throw(state, IDLE, BOT_ACTIVATED);
 	}
 
 	StateLocker::~StateLocker()
 	{
-		state.exchange(WAITING);
+		state.exchange(IDLE);
 	}
 
 	GamePlayer::GamePlayer() : GamePlayer(nullptr, nullptr) {}
@@ -34,7 +33,7 @@ namespace c20::core {
 	GamePlayer::GamePlayer(ui::UIHandler* _ui,
 			   selectors::MoveSelector* _move_selector) : 
 		ui(_ui), move_selector(_move_selector), 
-		game_state(WAITING), thread_pool(2) {}
+		game_state(IDLE), thread_pool(2) {}
 
 
 	void GamePlayer::set_position_for_handlers(const Position& pos)
@@ -71,7 +70,7 @@ namespace c20::core {
 
 	void GamePlayer::start_game()
 	{
-		lock_or_throw(game_state);
+		exchange_or_throw(game_state, IDLE, GAME_STARTED);
 		spdlog::info("Starting game.");
 		current_game = std::unique_ptr<Game>(Game::start_game());
 		set_position_for_handlers(*(current_game->current_position()));
@@ -79,19 +78,14 @@ namespace c20::core {
 
 	void GamePlayer::stop_game()
 	{
-		//TODO race conditions here..
 		spdlog::info("Stopping game.");
-		bot_state.exchange(WAITING);
-		game_state.exchange(WAITING);
+		game_state.exchange(IDLE);
 	}
 
 
 	void GamePlayer::start_bot()
 	{
-		//TODO resolve race conditions here
-		if (game_state != RUNNING) 
-			throw std::runtime_error("Game is not running");
-		lock_or_throw(bot_state);
+		exchange_or_throw(game_state, GAME_STARTED, BOT_ACTIVATED);
 		spdlog::info("Activating bot.");
 		boost::asio::post(thread_pool,
 				boost::bind(&GamePlayer::bot_loop, this));
@@ -99,13 +93,13 @@ namespace c20::core {
 
 	void GamePlayer::stop_bot()
 	{
-		spdlog::info("Starting bot.");
-		bot_state.exchange(WAITING);
+		spdlog::info("Stopping bot.");
+		exchange_or_throw(game_state, BOT_ACTIVATED, GAME_STARTED);
 	}
 
 	void GamePlayer::bot_loop()
 	{
-		while (bot_state == RUNNING)
+		while (game_state == BOT_ACTIVATED)
 		{
 			if (current_game->is_over())
 			{

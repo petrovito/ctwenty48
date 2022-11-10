@@ -7,9 +7,11 @@
 #include "widgets.hh"
 #include <memory>
 #include <game_play.hh>
+#include <sys/types.h>
 #include <thread>
 #include <ui.hh>
 #include <boost/asio/thread_pool.hpp>
+#include <unordered_map>
 
 namespace c20::deps { class GuiEnv; }
 
@@ -20,13 +22,15 @@ namespace c20::gui {
 	{
 		//from frontend
 		START_GAME,
+		ACTIVATE_BOT,
+		STOP_BOT,
 		EXIT_APP,
 
 		//from backend
 		SET_POSITION
 	};
 
-	typedef long long int message_key;
+	typedef u_int64_t message_key;
 
 	enum Status
 	{
@@ -34,25 +38,24 @@ namespace c20::gui {
 		FAILURE,
 	};
 
+
 	struct GuiMessage
 	{
-		message_key key;
+		message_key key = 0;
+		bool is_response = false;
+
 		GuiAction action;
+
+		Status status;
 
 		Position pos;
 	};
 
-	struct GuiResponse
-	{
-		message_key key;
-		Status status;
-	};
-
-	struct MessagePair
-	{
-		GuiMessage request;
-		GuiResponse answer;
-	};
+	/* struct MessagePair */
+	/* { */
+	/* 	GuiMessage request; */
+	/* 	GuiResponse answer; */
+	/* }; */
 
 	typedef moodycamel::BlockingConcurrentQueue<GuiMessage> message_q;
 
@@ -112,6 +115,7 @@ namespace c20::gui {
 	{
 		Observable<Position> table_pos;
 		Observable<GameHistoryView<>> history_view;
+		Observable<core::GamePlayerState> game_state;
 	};
 
 
@@ -130,8 +134,10 @@ namespace c20::gui {
 			StateInfo state_info;
 
 			void set_position(const Position&);
+			void game_state_changed(const core::GamePlayerState& state);
 
-			void play_a_game();
+			void start_game();
+			void change_bot_state();
 			void exit();
 	};
 
@@ -146,6 +152,8 @@ namespace c20::gui {
 			GuiMessageChannel* channel;
 			StateInfoHandler* stateinfo_handler;
 			std::thread* msg_receiver_thread;
+
+			std::unordered_map<message_key, GuiMessage> sent_requests;
 			
 			void receive_messages();
 			void init();
@@ -155,6 +163,7 @@ namespace c20::gui {
 			FrontendConnector() = default;
 			virtual ~FrontendConnector();
 			void message(const GuiMessage&);
+			void request(GuiMessage&&);
 	};
 
 

@@ -1,4 +1,5 @@
 #include "frontend_game.hh"
+#include "game_play.hh"
 #include <boost/bind/bind.hpp>
 #include <cstdlib>
 #include <exception>
@@ -106,7 +107,7 @@ namespace c20::gui {
 		place(*this),
 		btn_group(*this, "Game"),
 		start_game_btn(btn_group, "Start game"),
-		bot_btn(btn_group, "Activate bot")
+		bot_btn(btn_group, "Start/stop bot")
 	{
 		place.div(R"( 
 			vertical 
@@ -124,7 +125,26 @@ namespace c20::gui {
 		btn_group["buttons"] << bot_btn;
 		bot_btn.enabled(false);
 
-		start_game_btn.events().click([this](){handler->play_a_game();});
+		start_game_btn.events().click([this](){handler->start_game();});
+		bot_btn.events().click([this]() {handler->change_bot_state();});
+	}
+
+	void MainTab::game_state_changed(const core::GamePlayerState& state)
+	{
+		switch (state) {
+			case core::IDLE:
+				start_game_btn.enabled(true);
+				bot_btn.enabled(false);
+				break;
+			case core::GAME_STARTED:
+				start_game_btn.enabled(false);
+				bot_btn.enabled(true);
+				break;
+			case core::BOT_ACTIVATED:
+				start_game_btn.enabled(false);
+				bot_btn.enabled(true);
+				break;
+		}
 	}
 
 
@@ -206,6 +226,8 @@ namespace c20::gui {
 	void MainTab::set_handler(StateInfoHandler* _handler)
 	{
 		handler = _handler;
+		handler->state_info.game_state.subscribe(
+				[this] (auto var) {game_state_changed(var);});
 	}
 
 	void HistoryTab::set_handler(StateInfoHandler* _handler)

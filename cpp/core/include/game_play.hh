@@ -11,10 +11,11 @@ namespace c20::core {
 
 	using namespace commons;
 
-	enum State 
+	enum GamePlayerState 
 	{
-		WAITING,
-		RUNNING,
+		IDLE,
+		GAME_STARTED,
+		BOT_ACTIVATED,
 	};
 
 
@@ -25,8 +26,7 @@ namespace c20::core {
 			ui::UIHandler* ui;
 
 			std::unique_ptr<Game> current_game;
-			std::atomic<State> game_state;
-			std::atomic<State> bot_state;
+			std::atomic<GamePlayerState> game_state;
 
 			boost::asio::thread_pool thread_pool;
 
@@ -53,9 +53,9 @@ namespace c20::core {
 	class StateLocker
 	{
 		private:
-			std::atomic<State>& state;
+			std::atomic<GamePlayerState>& state;
 		public:
-			StateLocker(std::atomic<State>&);
+			StateLocker(std::atomic<GamePlayerState>&);
 			~StateLocker();
 	};
 
