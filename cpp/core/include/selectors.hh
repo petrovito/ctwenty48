@@ -15,6 +15,7 @@ namespace c20::selectors {
 		public:
 			virtual void set_position(const Position&);
 			virtual UserMove make_move() = 0;
+			virtual Analysis analyze(const Position&);
 	};
 
 	

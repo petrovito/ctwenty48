@@ -60,8 +60,9 @@ namespace c20::gui {
 		while (!shutting_down) {
 			GuiMessage message;
 			if (!channel->message_from(FRONTEND, message)) continue;
-			spdlog::debug("Message from frontend received. Action {}", message.action);
+			spdlog::trace("Message from frontend received. Action {}", message.action);
 			switch (message.action) {
+			//TODO so much repetition...
 			case START_GAME:
 				spdlog::info("Frontend request: Start a game.");
 				try {
@@ -87,7 +88,7 @@ namespace c20::gui {
 				}
 				break;
 			case STOP_BOT:
-				spdlog::info("Frontend request: Start bot.");
+				spdlog::info("Frontend request: Stop bot.");
 				try {
 					game_player->stop_bot();
 					channel->message_to(FRONTEND, 
@@ -98,13 +99,22 @@ namespace c20::gui {
 							{.key=message.key, .is_response=true, .status=FAILURE});
 				}
 				break;
+			case ANALYZE:
+				spdlog::trace("Frontend request: Analyze pos. Key: {}", message.key);
+				game_player->analyze_async(message.pos, message.key);
+				break;
 			case EXIT_APP:
 				spdlog::info("Frontend request: Exit app.");
 				game_player->exit_app();
 				break;
 			}
 		}
-		spdlog::debug("Backend receive mgs loop shut down.");
+		spdlog::debug("Backend receive msg loop shut down.");
+	}
+
+	void BackendConnector::analysis_msg(const Analysis& anal, message_key key)
+	{
+		channel->message_to(FRONTEND, {.key=key, .is_response=true, .analysis=anal});
 	}
 
 	BackendConnector::~BackendConnector()
@@ -143,17 +153,24 @@ namespace c20::gui {
 						if (message.status == OK) {
 							spdlog::debug("Bot has stopped.");
 							stateinfo_handler->game_state_changed(core::GAME_STARTED);
-						} else spdlog::error("Game couldn't be started.");
+						} else spdlog::error("Bot couldn't be stopped.");
 						break;
 					case ACTIVATE_BOT:
 						if (message.status == OK) {
 							spdlog::debug("Bot has started.");
 							stateinfo_handler->game_state_changed(core::BOT_ACTIVATED);
-						} else spdlog::error("Game couldn't be started.");
+						} else spdlog::error("Bot couldn't be started.");
 						break;
-					}					
+					case ANALYZE:
+						if (message.status == OK) {
+							spdlog::trace("Analysis done");
+							stateinfo_handler->analysis(message.analysis);
+						} else spdlog::error("Analysis failed.");
+						break;
+					}	
 				} else {
-					spdlog::error("No request found with response msg key.");
+					spdlog::error("No request found with response msg key: {}.",
+							message.key);
 				}
 				continue;
 			}
@@ -197,6 +214,11 @@ namespace c20::gui {
 	void StateInfoHandler::game_state_changed(const core::GamePlayerState& state)
 	{
 		state_info.game_state.modify(state);
+	}
+
+	void StateInfoHandler::analysis(const Analysis& anal)
+	{
+		state_info.analysis.modify(anal);
 	}
 
 
@@ -250,11 +272,38 @@ namespace c20::gui {
 		connector->request({.action=START_GAME});
 	}
 
-	void StateInfoHandler::change_bot_state()
+	void StateInfoHandler::change_analyze_state()
 	{
 		switch (state_info.game_state.get()) {
 			case core::IDLE:
 				throw std::runtime_error("Game has not started.");
+			case core::BOT_ACTIVATED:
+				throw std::runtime_error("Bot is running");
+			case core::GAME_STARTED:
+				spdlog::info("Start analyzing mode.");
+				state_info.game_state.modify(core::ANALYZING);
+				break;
+			case core::ANALYZING:
+				spdlog::info("Stop analyzing.");
+				state_info.game_state.modify(core::GAME_STARTED);
+				break;
+		}
+	}
+
+	void StateInfoHandler::request_analysis(const Position& pos)
+	{
+		if (state_info.game_state.get() != core::ANALYZING)
+			throw std::runtime_error("Lock in wrong state");
+		spdlog::trace("Request to analyze pos.");
+		connector->request({.action=ANALYZE, .pos=pos});
+	}
+
+	void StateInfoHandler::change_bot_state()
+	{
+		switch (state_info.game_state.get()) {
+			case core::IDLE:
+			case core::ANALYZING:
+				throw std::runtime_error("Wrong game state");
 			case core::GAME_STARTED:
 				spdlog::info("Request to start bot");
 				connector->request({.action=ACTIVATE_BOT});

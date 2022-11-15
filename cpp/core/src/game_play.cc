@@ -119,8 +119,20 @@ namespace c20::core {
 		//TODO notify handlers
 	}
 
-	
 
+	void GamePlayer::analyze_async(const Position& pos, message_key key) 
+	{
+		boost::asio::post(thread_pool, [=, this]() {analyze(pos, key);});
+	}
+
+
+	void GamePlayer::analyze(const Position &pos, message_key key)
+	{
+		spdlog::trace("Analysis starting. Key: {}", key);
+		Analysis anal = move_selector->analyze(pos);
+		spdlog::trace("Analysis done");
+		ui->analysis_msg(anal, key);
+	}
 
 	
 

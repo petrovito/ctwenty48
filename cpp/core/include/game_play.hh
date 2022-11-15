@@ -16,6 +16,7 @@ namespace c20::core {
 		IDLE,
 		GAME_STARTED,
 		BOT_ACTIVATED,
+		ANALYZING,
 	};
 
 
@@ -34,6 +35,8 @@ namespace c20::core {
 			void handle_game_over();
 			void bot_loop();
 
+			void analyze(const Position&, message_key);
+
 			template<typename UiEnv> friend class deps::Environment;
 		public:
 			GamePlayer();
@@ -46,8 +49,9 @@ namespace c20::core {
 			void start_bot();
 			void stop_bot();
 
-			void exit_app();
+			void analyze_async(const Position&, message_key);
 
+			void exit_app();
 	};
 
 	class StateLocker

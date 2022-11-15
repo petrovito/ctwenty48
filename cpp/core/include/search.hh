@@ -84,7 +84,7 @@ namespace c20::search {
 		std::array<RandomNode*, NUM_DIRECTIONS> children;
 
 		UserNode();
-		UserNode(Position);
+		UserNode(const Position&);
 		virtual ~UserNode() = default;
 	};
 
@@ -101,7 +101,7 @@ namespace c20::search {
 		std::vector<std::pair<Probability, UserNode*>> children;
 
 		RandomNode();
-		RandomNode(Position);
+		RandomNode(const Position&);
 		virtual ~RandomNode() = default;
 	};
 
@@ -128,13 +128,14 @@ namespace c20::search {
 			NodeContainer();
 			UserNode* push_usernode(Position&);
 			RandomNode* push_randomnode(Position&);
-			void reset(Position&);
+			void reset(const Position&);
 			void increase_level();
 			int last_level_length();
 			std::vector<UserNode*> get_final_nodes();
 			inline UserNode* root_node() {return root;};
 			inline int usernode_count() {return usernode_idx;};
 			std::pair<UserNode*, UserNode*> last_level_usernodes();
+			std::array<Value, NUM_DIRECTIONS> children_evals(); 
 
 	};
 
@@ -161,7 +162,7 @@ namespace c20::search {
 	class NodeEvaluator
 	{
 		public:
-			virtual Value evaluate(Position&) = 0;
+			virtual Value evaluate(const Position&) = 0;
 			virtual void batch_evaluate(std::vector<UserNode*>&) = 0;
 	};
 
@@ -189,11 +190,14 @@ namespace c20::search {
 			GraphEvaluator *graph_evaluator;
 			NodeEvaluator *node_eval;
 
+			std::mutex analyze_mutex;
+
 			template<typename UiEnv> friend class deps::Environment;
 		public:
 			SearchManager() = default;
 			SearchManager(NodeEvaluator*, NumberPopper*);
-			virtual UserMove make_move();
+			virtual UserMove make_move() override;
+			virtual Analysis analyze(const Position& pos) override;
 			void init(); 
 			void set_position(Position);
 			void start_search();

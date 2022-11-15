@@ -13,6 +13,7 @@ namespace c20::ui {
 
 	void NoopUI::set_position(const commons::Position& pos) {}
 	void NoopUI::game_over() {}
+	void NoopUI::analysis_msg(const Analysis& anal, message_key key) {}
 
 
 

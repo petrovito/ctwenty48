@@ -17,13 +17,13 @@ namespace c20::cnn {
 			NeuralEvaluator(cppflow::model&&);
 
 		public:
-			virtual Value evaluate(Position&) override;
+			virtual Value evaluate(const Position&) override;
 			virtual void batch_evaluate(std::vector<search::UserNode*>&) override;
 			static NeuralEvaluator* load_from(std::string model_path);
 	};
 
 	
-	cppflow::tensor tensor_from_pos(Position&);
+	cppflow::tensor tensor_from_pos(const Position&);
 	cppflow::tensor tensor_from_pos(std::vector<search::UserNode*>&);
 	Value value_from_tensor(cppflow::tensor&);
 

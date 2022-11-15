@@ -218,6 +218,16 @@ namespace c20::commons {
 	};
 
 
+	/******************** ANALYSIS ********************/
+
+	typedef u_int64_t message_key;
+
+	struct Analysis
+	{
+		Value position_val;
+		std::vector<std::array<Value, NUM_DIRECTIONS>> deep_values;
+	};
+
 
 
 	/********************** UTILS ***********************/

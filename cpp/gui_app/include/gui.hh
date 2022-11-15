@@ -24,13 +24,14 @@ namespace c20::gui {
 		START_GAME,
 		ACTIVATE_BOT,
 		STOP_BOT,
+		ANALYZE,
+		STOP_ANALYZE,
 		EXIT_APP,
 
 		//from backend
 		SET_POSITION
 	};
 
-	typedef u_int64_t message_key;
 
 	enum Status
 	{
@@ -49,13 +50,10 @@ namespace c20::gui {
 		Status status;
 
 		Position pos;
+
+		Analysis analysis;
 	};
 
-	/* struct MessagePair */
-	/* { */
-	/* 	GuiMessage request; */
-	/* 	GuiResponse answer; */
-	/* }; */
 
 	typedef moodycamel::BlockingConcurrentQueue<GuiMessage> message_q;
 
@@ -103,8 +101,8 @@ namespace c20::gui {
 			virtual ~BackendConnector();
 
 			virtual void set_position(const Position&);
-			virtual void game_over();
-
+	 		virtual void game_over();
+			virtual void analysis_msg(const Analysis&, message_key);
 	};
 
 
@@ -116,6 +114,7 @@ namespace c20::gui {
 		Observable<Position> table_pos;
 		Observable<GameHistoryView<>> history_view;
 		Observable<core::GamePlayerState> game_state;
+		Observable<Analysis> analysis; //TODO this seems a bit iffy..
 	};
 
 
@@ -135,10 +134,13 @@ namespace c20::gui {
 
 			void set_position(const Position&);
 			void game_state_changed(const core::GamePlayerState& state);
+			void analysis(const Analysis&);
 
 			void move_history_view(int key);
 			void start_game();
 			void change_bot_state();
+			void change_analyze_state();
+			void request_analysis(const Position&);
 			void exit();
 	};
 

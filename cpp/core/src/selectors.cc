@@ -6,6 +6,11 @@
 namespace c20::selectors {
 
 
+	Analysis MoveSelector::analyze(const Position& _pos)
+	{
+		return Analysis{.position_val=0};
+	}
+
 	void MoveSelector::set_position(const Position& _pos)
 	{
 		pos = _pos;

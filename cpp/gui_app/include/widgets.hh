@@ -5,6 +5,7 @@
 #include <array>
 #include <memory>
 #include <nana/gui.hpp>
+#include <nana/gui/basis.hpp>
 #include <nana/gui/place.hpp>
 #include <nana/gui/widgets/button.hpp>
 #include <nana/gui/widgets/form.hpp>
@@ -41,6 +42,7 @@ namespace c20::gui {
 
 			nana::button start_game_btn;
 			nana::button bot_btn;
+			nana::button analyze_btn;
 
 			StateInfoHandler* handler;
 		public:
@@ -49,12 +51,29 @@ namespace c20::gui {
 			void game_state_changed(const core::GamePlayerState&);
 	};
 
+
+	class AnalyzePanel : public nana::panel<false>
+	{
+		private:
+			nana::place place;
+			nana::label zero_label; //zero depth eval label
+			std::vector<std::vector<std::unique_ptr<nana::label>>> table;
+
+			StateInfoHandler* handler;
+		public:
+			AnalyzePanel(nana::window);
+			void set_handler(StateInfoHandler*);
+			void update_pos(const commons::Position&);
+			void update_texts(const commons::Analysis&);
+	};
+
 	class HistoryTab : public nana::panel<false>
 	{
 		private:
 			nana::place place;
 			
 			std::vector<std::vector<std::unique_ptr<nana::label>>> labels;
+			AnalyzePanel analyze_panel;
 
 			StateInfoHandler* handler;
 			friend class ControlPanel;

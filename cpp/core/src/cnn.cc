@@ -32,7 +32,7 @@ namespace c20::cnn {
 	}
 
 
-	Value NeuralEvaluator::evaluate(Position& pos)
+	Value NeuralEvaluator::evaluate(const Position& pos)
 	{
 		auto input_tensor = tensor_from_pos(pos);
 		auto output = model(input_tensor);
@@ -40,7 +40,7 @@ namespace c20::cnn {
 	}
 
 
-	cppflow::tensor tensor_from_pos(Position& pos) 
+	cppflow::tensor tensor_from_pos(const Position& pos) 
 	{
 		std::vector<float> values;
 		for (Number num: pos.squares()) 

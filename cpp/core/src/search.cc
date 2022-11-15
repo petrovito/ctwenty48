@@ -1,6 +1,8 @@
 #include "cnn.hh"
+#include <array>
 #include <iterator>
 #include <limits>
+#include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <utility>
 
@@ -14,8 +16,8 @@ namespace c20::search {
 
 
 
-	UserNode::UserNode(Position pos) : Node(pos), children({}), dist({}) {}
-	RandomNode::RandomNode(Position pos) : Node(pos), eval({}) {}
+	UserNode::UserNode(const Position& pos) : Node(pos), children({}), dist({}) {}
+	RandomNode::RandomNode(const Position& pos) : Node(pos), eval({}) {}
 	Node::Node(Position pos) : pos(pos), is_final(false), is_over(false) {}
 
 	UserNode::UserNode() : Node(), children({}), dist({}) {}
@@ -106,16 +108,35 @@ namespace c20::search {
 		eval_and_set(random_node->eval);
 	}
 
+#define USE_PERCENTILE 0
+#define USE_EV         1
 
 	Value GraphEvaluator::eval_and_set(Evaluation& eval)
 	{
-		//TODO this is expected value, find other ways to evaluate
+#if USE_EV
 		eval.value = -1 * eval.dist.known_ending;
 		for (int i = 0; i < BIN_COUNT; i++)
 		{
 			auto bin_prob = eval.dist.bins[i];
 			eval.value += bin_prob * i;
 		}
+#elif USE_PERCENTILE
+		float upper_bound = 0.1;
+		float cum_prob = eval.dist.known_ending;
+		float prev_cum_prob = cum_prob;
+		int i = 0;
+		for (; i < BIN_COUNT; i++)
+		{
+			cum_prob += eval.dist.bins[i];
+			if (cum_prob > upper_bound) {
+				float weight = cum_prob - upper_bound;
+				eval.value = ((i -1) * prev_cum_prob + i * cum_prob) 
+					/ (cum_prob + prev_cum_prob);
+				break;
+			}
+			prev_cum_prob = cum_prob;
+		}
+#endif
 		return eval.value;
 	}
 
@@ -129,6 +150,7 @@ namespace c20::search {
 	{
 		return game_tree->root_node()->best_dir;
 	}
+
 
 //SearchManager class
 
@@ -157,6 +179,27 @@ namespace c20::search {
 		graph_evaluator->evaluate(node_container);
 		auto dir = graph_evaluator->pick_one(node_container);
 		return UserMove{dir};
+	}
+
+
+	Analysis SearchManager::analyze(const Position& pos) 
+	{
+		std::lock_guard lock(analyze_mutex);
+		Analysis anal;
+		node_container->reset(pos);
+
+		anal.position_val = node_eval->evaluate(pos) * BIN_COUNT;
+
+		for (int i = 0; i < 3; i++) {
+			if (node_container->usernode_count() > 9000) break;
+			int new_nodes = graph_searcher->search_level();
+			if (new_nodes == 0) break;
+			auto final_nodes = node_container->get_final_nodes();
+			node_eval->batch_evaluate(final_nodes);
+			graph_evaluator->evaluate(node_container);
+			anal.deep_values.push_back(node_container->children_evals());
+		}
+		return anal;
 	}
 
 //NodeContainer class
@@ -202,7 +245,7 @@ namespace c20::search {
 	}
 
 
-	void NodeContainer::reset(Position& pos)
+	void NodeContainer::reset(const Position& pos)
 	{
 		current_level = 0;
 		usernode_levels[0] = 1;
@@ -246,6 +289,19 @@ namespace c20::search {
 				usernode_buf + usernode_levels[current_level]};
 	}
 
+
+	std::array<Value, NUM_DIRECTIONS> NodeContainer::children_evals()
+	{
+		std::array<Value, NUM_DIRECTIONS> evals;
+		for (int i = 0; i < NUM_DIRECTIONS; i++)
+		{
+			if (root->children[i])
+				evals[i] = root->children[i]->eval.value;
+			else evals[i] = 0;
+		}
+		/* spdlog::info("{}:{}:{}:{}", evals[0], evals[1],evals[2], evals[3]); */
+		return evals;
+	}
 
 //GraphSearcher class
 

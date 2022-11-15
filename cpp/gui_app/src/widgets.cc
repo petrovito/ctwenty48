@@ -1,12 +1,16 @@
 #include "frontend_game.hh"
 #include "game_play.hh"
+#include "search.hh"
+#include "types.hh"
 #include <boost/bind/bind.hpp>
 #include <cstdlib>
 #include <exception>
 #include <fmt/core.h>
 #include <memory>
 #include <nana/basic_types.hpp>
+#include <nana/gui/basis.hpp>
 #include <nana/gui/widgets/label.hpp>
+#include <nana/gui/widgets/panel.hpp>
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 #include <widgets.hh>
@@ -118,7 +122,8 @@ namespace c20::gui {
 		place(*this),
 		btn_group(*this, "Game"),
 		start_game_btn(btn_group, "Start game"),
-		bot_btn(btn_group, "Start/stop bot")
+		bot_btn(btn_group, "Start/stop bot"),
+		analyze_btn(btn_group, "Start/stop analyze")
 	{
 		place.div(R"( 
 			vertical 
@@ -129,15 +134,19 @@ namespace c20::gui {
 
 		btn_group.div(R"(
 			<weight=10>
-		    <buttons grid=[2,1] weight=250 gap=5 margin=20>
+		    <buttons grid=[3,1] weight=375 gap=5 margin=20>
 			<weight=10>
 		)");
 		btn_group["buttons"] << start_game_btn;
 		btn_group["buttons"] << bot_btn;
+		btn_group["buttons"] << analyze_btn;
+
 		bot_btn.enabled(false);
+		analyze_btn.enabled(false);
 
 		start_game_btn.events().click([this](){handler->start_game();});
 		bot_btn.events().click([this]() {handler->change_bot_state();});
+		analyze_btn.events().click([this]() {handler->change_analyze_state();});
 	}
 
 	void MainTab::game_state_changed(const core::GamePlayerState& state)
@@ -146,14 +155,22 @@ namespace c20::gui {
 			case core::IDLE:
 				start_game_btn.enabled(true);
 				bot_btn.enabled(false);
+				analyze_btn.enabled(false);
 				break;
 			case core::GAME_STARTED:
 				start_game_btn.enabled(false);
 				bot_btn.enabled(true);
+				analyze_btn.enabled(true);
 				break;
 			case core::BOT_ACTIVATED:
 				start_game_btn.enabled(false);
 				bot_btn.enabled(true);
+				analyze_btn.enabled(false);
+				break;
+			case core::ANALYZING:
+				start_game_btn.enabled(false);
+				bot_btn.enabled(false);
+				analyze_btn.enabled(true);
 				break;
 		}
 	}
@@ -166,10 +183,13 @@ namespace c20::gui {
 
 	HistoryTab::HistoryTab(nana::window fm) :
 		nana::panel<false>(fm),
-		place(*this)
+		place(*this),
+		analyze_panel(*this)
 	{
 		place.div(R"(
-				<hist grid=[5,10]>
+			vertical
+				<hist grid=[5,10] weight=60%>
+				<analyze >
 		)");
 		for (int i = 0; i < 5; i++) {
 			labels.push_back({});
@@ -190,6 +210,7 @@ namespace c20::gui {
 				place["hist"] << *labels[i][j];
 			}
 		}		
+		place["analyze"] << analyze_panel;
 	}
 
 	void HistoryTab::update_texts(const GameHistoryView<>& history_view)
@@ -200,6 +221,56 @@ namespace c20::gui {
 				if (std::pair(i,j) == history_view.current_pos_coord) {
 					labels[i][j]->bgcolor(selected_clr);
 				} else labels[i][j]->bgcolor(not_selected_clr);
+			}
+		}
+	}
+
+
+//AnalyzePanel
+
+
+	AnalyzePanel::AnalyzePanel(nana::window fm) :
+		nana::panel<false>(fm),
+		place(*this),
+		zero_label(*this, "HEYO")
+	{
+		place.div(R"(
+			vertical
+				<single weight=40>
+				<deep grid=[4,4]>
+		)");
+
+		zero_label.text_align(nana::align::center, nana::align_v::center);
+		place["single"] << zero_label;
+
+		for (int i = 0; i < 4; i++) {
+			table.push_back({});
+			for (int j = 0; j < 4; j++) {
+				auto label = 
+					new nana::label(*this, "-");
+				label->text_align(nana::align::center, nana::align_v::center);
+				table[i].push_back(std::unique_ptr<nana::label>(label));
+				place["deep"] << *table[i][j];
+			}
+		}
+	}
+
+
+	void AnalyzePanel::update_pos(const commons::Position& pos)
+	{
+		if (handler->state_info.game_state.get() == core::ANALYZING) {
+			handler->request_analysis(pos);
+		}	
+	}
+
+	void AnalyzePanel::update_texts(const Analysis& anal)
+	{
+		zero_label.caption(fmt::format("{:.4}", anal.position_val));
+		for (int i = 0; i < anal.deep_values.size(); i++) {
+			for (int j = 0; j < 4; j++) {
+				table[i][j]->caption(fmt::format("{:.4}", anal.deep_values[i][j]));
+				auto weight = anal.deep_values[i][j] / BIN_COUNT;
+				/* table[i][j]->bgcolor(nana::color((int)(255*weight),(int)(255*weight),(int)(255*weight))); */
 			}
 		}
 	}
@@ -256,6 +327,16 @@ namespace c20::gui {
 	{
 		handler = _handler;
 		handler->state_info.history_view.subscribe(
+				[this](auto var) {update_texts(var);});
+		analyze_panel.set_handler(handler);
+	}
+
+	void AnalyzePanel::set_handler(StateInfoHandler* _handler)
+	{
+		handler = _handler;
+		handler->state_info.table_pos.subscribe(
+				[this](auto var) {update_pos(var);});
+		handler->state_info.analysis.subscribe(
 				[this](auto var) {update_texts(var);});
 	}
 
