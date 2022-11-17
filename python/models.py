@@ -1,3 +1,13 @@
+
+"""
+This file contains util functions for training/creating
+keras models from already existing (parsed) data in 
+compatible format.
+
+There various model types that can be trained/created.
+Dense and also models that try to encapsulate the board's
+geometry in one way or the other.
+"""
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -7,8 +17,60 @@ import pandas as pd
 import tensorflow as tf
 from keras import layers
 
+import synthetic_data
+
 import logging
 from typing import Tuple, List
+
+
+#entrypoints
+
+def new_model_from_synthetic(model_path: str, model_version: str,
+        epochs=100):
+    """
+    Creates new model from scratch, and trains it on the data
+    from generated synthetic data.
+    """
+    logging.info('create new model from synthetic dat at {}'
+            .format(model_path))
+    x, y = synthetic_data.create_synthetic_data()
+    logging.info("Synthetic data has {} elements".format(len(x)))
+    model = create_model(model_version)
+    train_model(model, np.array(x), np.array(y), epochs=epochs)
+    save_model(model, model_path)
+
+def new_model_from_csvs(model_path: str, input_csv_paths: List[str],
+        model_version: str, epochs=10):
+    """
+    Creates new model from scratch, and trains it on the data
+    from the passed CSV files.
+    """
+    logging.info('create new model from {} at {}'
+            .format(input_csv_paths, model_path))
+    x, y = np_array_from_csvs(input_csv_paths)
+    model = create_model(model_version)
+    train_model(model, np.array(x), np.array(y), epochs=epochs)
+    save_model(model, model_path)
+
+
+def new_model_from_csv(model_path: str, input_csv_path: str,
+        model_version: str, epochs=10):
+    new_model_from_csvs(model_path, [input_csv_path],
+            model_version, epochs)
+
+
+def train_existing_model_from_csv(input_model_path: str, 
+        output_model_path: str, input_csv_path: str):
+    logging.info('Train model at {} from {}, and place new one at {}'
+            .format(input_model_path, input_csv_path, output_model_path))
+
+    model = keras.models.load_model(input_model_path)
+    x, y = np_array_from_csvs(tuple(input_csv_path))
+    train_model(model, np.array(x), np.array(y))
+    save_model(model, output_model_path)
+
+
+#helper functions
 
 def create_model(version="mv1") -> keras.Model:
     if version == 'mv1':
@@ -73,34 +135,4 @@ def np_array_from_csvs(input_csv_paths: List[str]) -> Tuple[np.array, np.array]:
     x, y = np.concatenate(x_list), np.concatenate(y_list)
     logging.info('input dims: [{}, {}]'.format(x.shape, y.shape))
     return x, y
-
-
-def new_model_from_csvs(model_path: str, input_csv_paths: List[str], model_version: str,
-        epochs=10):
-    """
-    Creates new model from scratch, and trains it on the data
-    from the passed CSV file.
-    """
-    logging.info('create new model from {} at {}'
-            .format(input_csv_paths, model_path))
-    x, y = np_array_from_csvs(input_csv_paths)
-    model = create_model(model_version)
-    train_model(model, np.array(x), np.array(y), epochs=epochs)
-    save_model(model, model_path)
-
-
-def new_model_from_csv(model_path: str, input_csv_path: str, model_version: str,
-        epochs=10):
-    new_model_from_csvs(model_path, (input_csv_path, ), model_version, epochs)
-
-
-def train_existing_model_from_csv(input_model_path: str, output_model_path: str,
-        input_csv_path: str):
-    logging.info('Train model at {} from {}, and place new one at {}'
-            .format(input_model_path, input_csv_path, output_model_path))
-
-    model = keras.models.load_model(input_model_path)
-    x, y = np_array_from_csvs(tuple(input_csv_path))
-    train_model(model, np.array(x), np.array(y))
-    save_model(model, output_model_path)
 

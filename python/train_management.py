@@ -1,3 +1,7 @@
+"""
+This is just a set of entrypoints for the utility functions
+in the other python scrip files.
+"""
 import logging
 import os
 
@@ -27,6 +31,7 @@ def get_parser() -> argparse.ArgumentParser:
     new_model_parser = subparsers.add_parser("new-model")
     new_model_parser.add_argument('--model-path', type=str, 
             default=default_cnn_dir + "models/v1")
+    new_model_parser.add_argument('--synthetic-data', action='store_true')
     new_model_parser.add_argument('--input-csv-path', type=str, 
             default=default_train_data_dir + "train_it_0.csv")
     new_model_parser.add_argument('--model-version', type=str, 
@@ -75,8 +80,12 @@ def transform_game_log_entrypoint(args):
 
 def new_model_from_csv_entrypoint(args):
     import models
-    models.new_model_from_csv(
-            args.model_path, args.input_csv_path, args.model_version)
+    if args.synthetic_data:
+        models.new_model_from_synthetic(
+                args.model_path, args.model_version)
+    else:
+        models.new_model_from_csv(
+                args.model_path, args.input_csv_path, args.model_version)
 
 
 def run_games_entrypoint(args):

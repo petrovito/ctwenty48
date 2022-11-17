@@ -12,4 +12,5 @@ neural-net/train_data/
 perf.data*
 valgrind/
 compile_commands.json
+python/__pycache__/
 

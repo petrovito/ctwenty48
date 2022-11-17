@@ -1,3 +1,13 @@
+"""
+This file contains util functions for parsing game logs. A game
+log contains the full set of positions that a particular game reached
+during its run, and these scripts below are transforming those logs
+into format that can be used for training by the keras models.
+
+There are various strategies that this parsing can happen, in particular 
+the scoring of a particular position (it usually has something
+to do with the length of the game, which is a good indicator of succes).
+"""
 import csv
 import logging
 import math
@@ -22,6 +32,10 @@ def transform_game_log(game_log_path: str, dataset_path: str,
 
 
 def transform_vv1(game_log_path: str, dataset_path: str):
+    """
+    Use last 100 positions from each game, score linearly TTL.
+    Ignore rest.
+    """
     out_rows = []
     with open(game_log_path) as csv_file:
         csv_reader = csv.reader(csv_file)
@@ -42,6 +56,10 @@ def transform_vv1(game_log_path: str, dataset_path: str):
 
 
 def transform_vv2(game_log_path: str, dataset_path: str):
+    """
+    Score: min(1, TTL/CUTOFF).
+    Doesn't perform well..
+    """
     out_rows = []
     cutoff = 100
     with open(game_log_path) as csv_file:
@@ -59,6 +77,10 @@ def transform_vv2(game_log_path: str, dataset_path: str):
   
 
 def transform_vv3(game_log_path: str, dataset_path: str):
+    """
+    Score: if TTL>CUTOFF: log(TTL)/log(maxTTL)
+           else: TTL/CUTOFF * log(CUTOFF)/log(maxTTL)
+    """
     in_rows = []
     max_game_length = -1
     with open(game_log_path) as csv_file:
