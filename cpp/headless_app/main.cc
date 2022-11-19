@@ -10,6 +10,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <memory>
+#include <spdlog/spdlog.h>
 #include <string>
 
 namespace po = boost::program_options;
@@ -23,6 +24,7 @@ int main(int argc, char** args) {
 		("num", po::value<int>()->default_value(1), "number of games to play")
 		("log-path", po::value<string>()->default_value("/dev/stdout"), "game logs path")
 		("model-path", po::value<string>()->default_value("neural-net/models/v1"), "model path")
+		("mce", "Monte Carlo estimator")
 		;
 
 	po::variables_map vm;
@@ -30,19 +32,19 @@ int main(int argc, char** args) {
 	po::notify(vm);    
 
 
-	cout<<"Running ctwenty48."<<endl;
-
 	c20::deps::EnvSpecs specs;
 
 
-	if (!vm.count("random")) 
-	{
+	if (vm.count("random")) {
+		spdlog::info("Using random selector.");
+		specs.move_selector = c20::deps::RandomSelector;
+	} else if (vm.count("mce")) {
+		spdlog::info("Using MCE.");
+		specs.move_selector = c20::deps::MCE;
+	} else {
+		spdlog::info("Using neural net evaluator.");
 		specs.move_selector = c20::deps::SearchManager;
 		specs.nn_model_path = vm["model-path"].as<string>();
-	}
-	else 
-	{
-		specs.move_selector = c20::deps::RandomSelector;
 	}
 
 	c20::deps::Environment env(specs);

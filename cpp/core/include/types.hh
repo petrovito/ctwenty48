@@ -137,7 +137,7 @@ namespace c20::commons {
 			bool operator==(const Position&) const;
 			SquareIterator squares() const;
 			/** Sum of (power of two) of squares. */
-			int power_sum();
+			int power_sum() const;
 			static Position from_str(std::string&&);
 	};
 

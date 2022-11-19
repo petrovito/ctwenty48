@@ -1,6 +1,7 @@
 #pragma once
 #include "game_logger.hh"
 #include "game_play.hh"
+#include "mc_estimate.hh"
 #include "search.hh"
 #include "ui.hh"
 #include <memory>
@@ -11,8 +12,7 @@
 namespace c20::deps {
 	
 	
-	enum MoveSelector { SearchManager, RandomSelector };
-	/* enum UIHandler { Noop, BackendConnector }; */
+	enum MoveSelector { SearchManager, RandomSelector, MCE };
 	enum UI { NONE, C2048 };
 
 
@@ -52,6 +52,7 @@ namespace c20::deps {
 			selectors::MoveSelector* move_selector;
 			std::unique_ptr<selectors::RandomSelector> random_selector;
 			std::unique_ptr<search::SearchManager> search_manager;
+			std::unique_ptr<search::MonteCarloEstimator> mc_estimator;
 
 			std::unique_ptr<search::NodeEvaluator> node_eval;
 			std::unique_ptr<commons::NumberPopper> number_popper;
@@ -82,6 +83,10 @@ namespace c20::deps {
 						node_eval = std::unique_ptr<search::NodeEvaluator>(
 								cnn::NeuralEvaluator::load_from(specs.nn_model_path));
 						break;
+					case MCE:
+						mc_estimator = std::make_unique<search::MonteCarloEstimator>();
+						move_selector = mc_estimator.get();
+						break;
 				}
 
 				ui_env.instantiate_beans();
@@ -99,6 +104,9 @@ namespace c20::deps {
 
 						graph_searcher->popper = number_popper.get();
 						graph_searcher->node_container = node_container.get();
+						break;
+					case MCE:
+						mc_estimator->popper(number_popper.get());
 						break;
 				}
 
@@ -124,8 +132,6 @@ namespace c20::deps {
 				{
 					auto game = game_player->play_a_game();
 					if (logger.get()) logger->log_game(*game);
-					std::cout << "Game " << i << " is played. Moves: " <<
-						game->history().size() << std::endl;
 				}
 			}
 

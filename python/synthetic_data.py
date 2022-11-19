@@ -39,6 +39,20 @@ def create_synthetic_data() -> Tuple[List[int], List[int]]:
                 .fill_rest_random(1, 3).position)
         add_symmetries(pos, 0.95, positions, evals)
 
+    partition = Partition([main_path(0,2)])
+    for _ in range(reps):
+        pos = (ValuedPartition(partition)
+                .fill_path_desc_random_no_zeros(10, 6)
+                .fill_rest_random(5, 4).position)
+        add_symmetries(pos, 0.925, positions, evals)
+
+    partition = Partition([main_path(0,2)])
+    for _ in range(reps):
+        pos = (ValuedPartition(partition)
+                .fill_path_desc_random_no_zeros(11, 7)
+                .fill_rest_random(8, 5).position)
+        add_symmetries(pos, 0.925, positions, evals)
+
     #2paths
     partition = Partition([main_path(0,3), main_path(3,4)])
     for _ in range(reps):

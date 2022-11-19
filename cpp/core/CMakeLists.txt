@@ -13,6 +13,7 @@ conan_basic_setup(TARGETS)
 add_library(ctwenty48_core STATIC 
 	src/types.cc
 	src/search.cc
+	src/mc_estimate.cc
 	src/cnn.cc
 	src/game_logger.cc
 	src/selectors.cc
@@ -27,6 +28,7 @@ target_link_libraries(ctwenty48_core PUBLIC
 	CONAN_PKG::spdlog
 	CONAN_PKG::concurrentqueue
 	CONAN_PKG::fmt
+	CONAN_PKG::onetbb
 	)
 target_include_directories(ctwenty48_core PUBLIC 
 	${CONAN_INCLUDE_DIRS_GTEST}

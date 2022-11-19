@@ -115,7 +115,8 @@ namespace c20::core {
 	void GamePlayer::handle_game_over()
 	{
 		spdlog::info("Game is over at move {}.", current_game->history().size());
-		stop_game();
+		/* stop_game(); */
+		ui->game_over();
 		//TODO notify handlers
 	}
 
@@ -130,7 +131,7 @@ namespace c20::core {
 	{
 		spdlog::trace("Analysis starting. Key: {}", key);
 		Analysis anal = move_selector->analyze(pos);
-		spdlog::trace("Analysis done");
+		spdlog::trace("Analysis done. Eval: {}", anal.position_val);
 		ui->analysis_msg(anal, key);
 	}
 

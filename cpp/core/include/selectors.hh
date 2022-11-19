@@ -26,7 +26,7 @@ namespace c20::selectors {
 			boost::random::uniform_int_distribution<> uniform;
 		public:
 			RandomSelector();
-			virtual UserMove make_move();
+			UserMove make_move() override;
 	};
 
 }

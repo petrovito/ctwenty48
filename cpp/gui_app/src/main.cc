@@ -11,7 +11,10 @@ int main()
 {
 	spdlog::set_level(spdlog::level::debug);
 
-	c20::deps::EnvSpecs specs{.nn_model_path = "neural-net/models/v1/"};
+	c20::deps::EnvSpecs specs{
+		.move_selector=c20::deps::MCE
+		/* .nn_model_path = "neural-net/models/synth_2/" */
+	};
 	c20::deps::Environment<c20::deps::GuiEnv> env(specs);
 
 	auto pos = c20::commons::Position::from_str("0000|0000|0000|0000");

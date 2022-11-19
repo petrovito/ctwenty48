@@ -29,7 +29,8 @@ namespace c20::gui {
 		EXIT_APP,
 
 		//from backend
-		SET_POSITION
+		SET_POSITION,
+		GAME_OVER,
 	};
 
 
@@ -100,9 +101,9 @@ namespace c20::gui {
 			BackendConnector() = default;
 			virtual ~BackendConnector();
 
-			virtual void set_position(const Position&);
-	 		virtual void game_over();
-			virtual void analysis_msg(const Analysis&, message_key);
+			void set_position(const Position&) override;
+	 		void game_over() override ;
+			void analysis_msg(const Analysis&, message_key) override ;
 	};
 
 
@@ -133,6 +134,7 @@ namespace c20::gui {
 			StateInfo state_info;
 
 			void set_position(const Position&);
+			void game_over();
 			void game_state_changed(const core::GamePlayerState& state);
 			void analysis(const Analysis&);
 

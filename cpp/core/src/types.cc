@@ -214,7 +214,7 @@ namespace c20::commons {
 		return zeros;
 	}
 
-	int Position::power_sum()
+	int Position::power_sum() const
 	{
 		int sum = 0;
 		for (int i = 0; i < NUM_SQUARES; i++) {

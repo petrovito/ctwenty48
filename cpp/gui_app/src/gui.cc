@@ -40,7 +40,10 @@ namespace c20::gui {
 
 //BackendConnector
 
-	void BackendConnector::game_over() {}
+	void BackendConnector::game_over() 
+	{
+		channel->message_to(FRONTEND, {.action=GAME_OVER});
+	}
 
 	void BackendConnector::set_position(const Position& pos) 
 	{
@@ -178,6 +181,9 @@ namespace c20::gui {
 			case SET_POSITION:
 				stateinfo_handler->set_position(message.pos);
 				break;
+			case GAME_OVER:
+				stateinfo_handler->game_over();
+				break;
 			}
 		}
 		spdlog::debug("Frontend receive mgs loop shut down.");
@@ -209,6 +215,11 @@ namespace c20::gui {
 		state_info.table_pos.modify(pos);
 		state_info.history_view.get().push_pos_and_adjust(pos);
 		state_info.history_view.notify();
+	}
+
+	void StateInfoHandler::game_over()
+	{
+
 	}
 
 	void StateInfoHandler::game_state_changed(const core::GamePlayerState& state)
