@@ -95,6 +95,8 @@ namespace c20::search {
 	}
 
 
+#define USE_MULT       1
+
 	void GraphEvaluator::eval_randomnode_recursive(RandomNode* random_node)
 	{
 		if (random_node == nullptr) return;
@@ -106,6 +108,27 @@ namespace c20::search {
 		}
 		//make evaluation of combined distribution
 		eval_and_set(random_node->eval);
+
+#if USE_MULT
+		auto highests = random_node->pos.highest(3);
+		auto first = highests[0];
+		if (
+				first.idx == 0 || first.idx == 3 || 
+				first.idx == 12 || first.idx == 15
+		) {
+			random_node->eval.value *= 2.5;
+			auto second = highests[1];
+			auto idx_diff = first.idx - second.idx;
+			auto idx_diff_abs = std::abs(idx_diff);
+			if (idx_diff_abs == 1 || idx_diff_abs == TABLE_SIZE) {
+				random_node->eval.value *= 1.5;
+				auto third = highests[2];
+				auto idx_diff_2 = second.idx - third.idx;
+				if (idx_diff == idx_diff_2)
+					random_node->eval.value *= 1.5;
+			}
+		}
+#endif
 	}
 
 #define USE_PERCENTILE 0
@@ -172,25 +195,25 @@ namespace c20::search {
 		int max_node_count = 1000;
 
 		//TODO design mechanism for time management, below is terrible
-		if (pow_sum > 500)
+		if (pow_sum > 1800) depth = 2;
+		if (pos.highest() == 11) depth = 1;
+
+		if (pow_sum > 3000)
 			depth = 2;
-		if (pow_sum > 3500 && pos.highest() < 12) {
+		if (pos.highest() == 12) depth = 1;
+
+		if (pow_sum > 5200) depth = 2;
+		if (pow_sum > 5500) {
+			depth = 10;
+		} 
+		if (pow_sum > 5800) {
+			depth = 10;
+			max_node_count = 20000;
+		} 
+		if (pow_sum > 6100) {
 			depth = 10;
 			max_node_count = 10000;
-		}
-		if (pow_sum > 5000){
-			depth = 10;
-			max_node_count = 10000;
-		}
-		if (pow_sum > 7500) {
-			if (pos.highest() < 13) {
-				depth = 10;
-				max_node_count = 40000;
-			} else {
-				depth = 10;
-				max_node_count = 20000;
-			}
-		}
+		} 
 		
 		for (int i = 0; i < depth; i++) {
 			if (node_container->usernode_count() > max_node_count) break;

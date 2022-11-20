@@ -8,6 +8,8 @@
 #include <types.hh>
 
 #include <gtest/gtest_prod.h>
+#include <utility>
+#include <vector>
 
 using boost::random::uniform_int_distribution;
 
@@ -227,6 +229,33 @@ namespace c20::commons {
 	Number Position::highest() const
 	{
 		return *std::max_element((Number*)table, (Number*)table +NUM_SQUARES);
+	}
+
+	std::vector<NumPos> Position::highest(int count) const
+	{
+		std::array<NumPos, NUM_SQUARES> squares;
+		auto loc_table = (Number*) table;
+		for (int i = 0; i < NUM_SQUARES; i++) 
+		{
+			squares[i] = {.idx=i, .num=loc_table[i]};
+		}
+
+		std::nth_element(squares.begin(), squares.begin() +count,
+				squares.end(), [] (auto& sq1, auto& sq2) {
+					return sq1.num > sq2.num;
+				});
+		
+		std::vector<NumPos> highests(count);
+
+		for (int i = 0; i < count; i++)
+			highests[i] = squares[i];
+
+		std::sort(highests.begin(), highests.end(), 
+				[] (auto& sq1, auto& sq2) {
+					return sq1.num > sq2.num;
+				});
+
+		return highests;
 	}
 	
 	Position Position::from_str(std::string &&table_str)

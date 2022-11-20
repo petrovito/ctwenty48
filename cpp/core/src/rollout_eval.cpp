@@ -79,22 +79,16 @@ namespace c20::search {
 	{
 		std::vector<int> rollout_results;
 		int pow_sum = pos.power_sum();
-		int num_rollouts = 5;
-		if (pow_sum > 1500) num_rollouts = 10;
-		if (pow_sum > 2000) num_rollouts = 20;
-		if (pow_sum > 3000) num_rollouts = 60;
-		if (pow_sum > 3250) num_rollouts = 120;
-		if (pow_sum > 3500) num_rollouts = 2;
-		if (pow_sum > 3700) num_rollouts = 2;
+		int num_rollouts = 50;
+		if (pow_sum > 2000) num_rollouts = 100;
+		if (pow_sum > 3000) num_rollouts = 50;
+		if (pow_sum > 3500) num_rollouts = 100;
 
-		if (pos.highest() == 12) num_rollouts = 40;
+		if (pos.highest() == 12) num_rollouts = 25;
 
-		if (pow_sum > 5000) num_rollouts = 2;
-		if (pow_sum > 6000) num_rollouts = 3;
-		if (pow_sum > 7000) num_rollouts = 5;
-		if (pow_sum > 7500) num_rollouts = 2;
-
-		if (pos.highest() == 13) num_rollouts = 4;
+		if (pow_sum > 4500) num_rollouts = 50;
+		if (pow_sum > 5200) num_rollouts = 10;
+		if (pow_sum > 7000) num_rollouts = 15;
 
 		for (int i = 0; i < num_rollouts; i++)
 		{

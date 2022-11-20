@@ -108,6 +108,12 @@ namespace c20::commons {
 			const Number* end();
 	};
 
+	struct NumPos
+	{
+		int idx;
+		Number num;
+	};
+
 	class Position 
 	{
 		private:
@@ -139,6 +145,7 @@ namespace c20::commons {
 			/** Sum of (power of two) of squares. */
 			int power_sum() const;
 			Number highest() const;
+			std::vector<NumPos> highest(int count) const;
 			static Position from_str(std::string&&);
 	};
 
