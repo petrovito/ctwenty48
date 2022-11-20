@@ -2,6 +2,7 @@
 #include "game_logger.hh"
 #include "game_play.hh"
 #include "mc_estimate.hh"
+#include "rollout_eval.hh"
 #include "search.hh"
 #include "ui.hh"
 #include <memory>
@@ -13,6 +14,7 @@ namespace c20::deps {
 	
 	
 	enum MoveSelector { SearchManager, RandomSelector, MCE };
+	enum NodeEvaluator { CNN, Rollout };
 	enum UI { NONE, C2048 };
 
 
@@ -23,6 +25,7 @@ namespace c20::deps {
 	struct EnvSpecs
 	{
 		MoveSelector move_selector = SearchManager;
+		NodeEvaluator node_eval = CNN;
 		UI ui = NONE;
 
 		std::string nn_model_path = "";
@@ -54,7 +57,9 @@ namespace c20::deps {
 			std::unique_ptr<search::SearchManager> search_manager;
 			std::unique_ptr<search::MonteCarloEstimator> mc_estimator;
 
-			std::unique_ptr<search::NodeEvaluator> node_eval;
+			search::NodeEvaluator* node_eval;
+			std::unique_ptr<search::RolloutEvaluator> rollout_eval;
+			std::unique_ptr<cnn::NeuralEvaluator> neural_eval;
 			std::unique_ptr<commons::NumberPopper> number_popper;
 			std::unique_ptr<search::NodeContainer> node_container;
 			std::unique_ptr<search::GraphSearcher> graph_searcher;
@@ -80,8 +85,17 @@ namespace c20::deps {
 						node_container = std::make_unique<search::NodeContainer>();
 						graph_searcher = std::make_unique<search::GraphSearcher>();
 						graph_evaluator = std::make_unique<search::GraphEvaluator>();
-						node_eval = std::unique_ptr<search::NodeEvaluator>(
-								cnn::NeuralEvaluator::load_from(specs.nn_model_path));
+						switch (specs.node_eval) {
+						case CNN:
+							neural_eval = std::unique_ptr<cnn::NeuralEvaluator>(
+									cnn::NeuralEvaluator::load_from(specs.nn_model_path));
+							node_eval = neural_eval.get();
+							break;
+						case Rollout:
+							rollout_eval = std::make_unique<search::RolloutEvaluator>();
+							node_eval = rollout_eval.get();
+							break;
+						}
 						break;
 					case MCE:
 						mc_estimator = std::make_unique<search::MonteCarloEstimator>();
@@ -100,10 +114,14 @@ namespace c20::deps {
 						search_manager->node_container = node_container.get();
 						search_manager->graph_searcher = graph_searcher.get();
 						search_manager->graph_evaluator = graph_evaluator.get();
-						search_manager->node_eval = node_eval.get();
+						search_manager->node_eval = node_eval;
 
 						graph_searcher->popper = number_popper.get();
 						graph_searcher->node_container = node_container.get();
+
+						if (specs.node_eval == Rollout)
+							rollout_eval->popper = number_popper.get();
+
 						break;
 					case MCE:
 						mc_estimator->popper(number_popper.get());

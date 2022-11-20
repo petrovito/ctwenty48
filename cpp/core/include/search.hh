@@ -164,6 +164,7 @@ namespace c20::search {
 		public:
 			virtual Value evaluate(const Position&) = 0;
 			virtual void batch_evaluate(std::vector<UserNode*>&) = 0;
+			virtual ~NodeEvaluator() = default;
 	};
 
 	/**

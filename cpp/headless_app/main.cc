@@ -25,6 +25,7 @@ int main(int argc, char** args) {
 		("log-path", po::value<string>()->default_value("/dev/stdout"), "game logs path")
 		("model-path", po::value<string>()->default_value("neural-net/models/v1"), "model path")
 		("mce", "Monte Carlo estimator")
+		("rollout", "Rollout node evaluator")
 		;
 
 	po::variables_map vm;
@@ -42,9 +43,15 @@ int main(int argc, char** args) {
 		spdlog::info("Using MCE.");
 		specs.move_selector = c20::deps::MCE;
 	} else {
-		spdlog::info("Using neural net evaluator.");
-		specs.move_selector = c20::deps::SearchManager;
-		specs.nn_model_path = vm["model-path"].as<string>();
+		spdlog::info("Using search manager.");
+		if (vm.count("rollout")) {
+			spdlog::info("Using rollout evaluator.");
+			specs.node_eval = c20::deps::Rollout;
+		} else {
+			spdlog::info("Using neural net evaluator.");
+			specs.move_selector = c20::deps::SearchManager;
+			specs.nn_model_path = vm["model-path"].as<string>();
+		}
 	}
 
 	c20::deps::Environment env(specs);

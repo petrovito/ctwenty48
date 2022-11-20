@@ -167,8 +167,28 @@ namespace c20::search {
 	{
 		node_container->reset(pos);
 
-		for (int i = 0; i < 24; i++) {
-			if (node_container->usernode_count() > 9000) break;
+		int pow_sum = pos.power_sum();
+		int depth = 1;
+		int max_node_count = 1000;
+
+		//TODO design mechanism for time management, below is terrible
+		if (pow_sum > 500)
+			depth = 2;
+		if (pow_sum > 3000) {
+			depth = 2;
+			max_node_count = 2000;
+		}
+		if (pow_sum > 4000) {
+			depth = 2;
+			max_node_count = 4000;
+		}
+		if (pow_sum > 5000){
+			depth = 10;
+			max_node_count = 10000;
+		}
+		
+		for (int i = 0; i < depth; i++) {
+			if (node_container->usernode_count() > max_node_count) break;
 			int new_nodes = graph_searcher->search_level();
 			if (new_nodes == 0) break;
 		}
