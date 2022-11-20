@@ -63,7 +63,9 @@ namespace c20::core {
 			auto next_move = move_selector->make_move();
 			current_game->do_move(next_move);
 		}
-		spdlog::info("Game is over at move {}", current_game->history().size());
+		spdlog::info("Game is over at move {}, sum: {}", 
+				current_game->history().size(), 
+				current_game->current_position()->power_sum());
 		return std::move(current_game);
 	}
 	

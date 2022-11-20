@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <boost/container/static_vector.hpp>
 #include <boost/random/discrete_distribution.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
@@ -221,6 +222,11 @@ namespace c20::commons {
 			sum += 1 << (*this)[i]; //TODO this is not precise
 		}
 		return sum;
+	}
+
+	Number Position::highest() const
+	{
+		return *std::max_element((Number*)table, (Number*)table +NUM_SQUARES);
 	}
 	
 	Position Position::from_str(std::string &&table_str)

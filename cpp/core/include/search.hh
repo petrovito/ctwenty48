@@ -106,8 +106,8 @@ namespace c20::search {
 	};
 
 
-#define NUM_USERNODES    1<<20
-#define NUM_RANDOMNODES  1<<18
+#define NUM_USERNODES    1<<22
+#define NUM_RANDOMNODES  1<<20
 	
 
 	class NodeContainer

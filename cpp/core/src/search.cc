@@ -174,17 +174,22 @@ namespace c20::search {
 		//TODO design mechanism for time management, below is terrible
 		if (pow_sum > 500)
 			depth = 2;
-		if (pow_sum > 3000) {
-			depth = 2;
-			max_node_count = 2000;
-		}
-		if (pow_sum > 4000) {
-			depth = 2;
-			max_node_count = 4000;
+		if (pow_sum > 3500 && pos.highest() < 12) {
+			depth = 10;
+			max_node_count = 10000;
 		}
 		if (pow_sum > 5000){
 			depth = 10;
 			max_node_count = 10000;
+		}
+		if (pow_sum > 7500) {
+			if (pos.highest() < 13) {
+				depth = 10;
+				max_node_count = 40000;
+			} else {
+				depth = 10;
+				max_node_count = 20000;
+			}
 		}
 		
 		for (int i = 0; i < depth; i++) {

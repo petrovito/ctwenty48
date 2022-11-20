@@ -138,6 +138,7 @@ namespace c20::commons {
 			SquareIterator squares() const;
 			/** Sum of (power of two) of squares. */
 			int power_sum() const;
+			Number highest() const;
 			static Position from_str(std::string&&);
 	};
 

@@ -37,9 +37,12 @@ namespace c20::search {
 		});
 		auto max_eval = *std::max_element(evals.begin(), evals.end())
 			+ .1; //add small sentinel, so that evals won't equal to 1
+		auto min_eval = *std::min_element(evals.begin(), evals.end());
+		auto diff = max_eval - min_eval;
+
 		for (int i = 0; i < evals.size(); i++)
 		{
-			nodes[i]->dist = NodeDistribution::const_dist(evals[i]/max_eval);
+			nodes[i]->dist = NodeDistribution::const_dist((evals[i] - min_eval) / diff);
 		}
 	}
 
@@ -79,11 +82,20 @@ namespace c20::search {
 		int num_rollouts = 5;
 		if (pow_sum > 1500) num_rollouts = 10;
 		if (pow_sum > 2000) num_rollouts = 20;
-		if (pow_sum > 3000) num_rollouts = 40;
-		if (pow_sum > 4000) num_rollouts = 60;
+		if (pow_sum > 3000) num_rollouts = 60;
+		if (pow_sum > 3250) num_rollouts = 120;
+		if (pow_sum > 3500) num_rollouts = 2;
+		if (pow_sum > 3700) num_rollouts = 2;
+
+		if (pos.highest() == 12) num_rollouts = 40;
+
 		if (pow_sum > 5000) num_rollouts = 2;
 		if (pow_sum > 6000) num_rollouts = 3;
 		if (pow_sum > 7000) num_rollouts = 5;
+		if (pow_sum > 7500) num_rollouts = 2;
+
+		if (pos.highest() == 13) num_rollouts = 4;
+
 		for (int i = 0; i < num_rollouts; i++)
 		{
 			rollout_results.push_back(roll_out(pos, popper, gen));
