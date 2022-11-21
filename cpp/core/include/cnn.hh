@@ -18,7 +18,8 @@ namespace c20::cnn {
 
 		public:
 			Value evaluate(const Position&) override;
-			void batch_evaluate(std::vector<search::UserNode*>&) override;
+			void batch_evaluate(std::vector<search::UserNode*>&, 
+					search::TimeSpan) override;
 			static NeuralEvaluator* load_from(std::string model_path);
 	};
 

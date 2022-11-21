@@ -146,6 +146,9 @@ namespace c20::commons {
 			int power_sum() const;
 			Number highest() const;
 			std::vector<NumPos> highest(int count) const;
+			int count_above(int threshold) const;
+
+
 			static Position from_str(std::string&&);
 	};
 

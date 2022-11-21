@@ -18,14 +18,14 @@ namespace c20::search {
 			NumberPopper *popper;
 			int roll_out(const Position& start_pos,
 				NumberPopper& popper, boost::mt19937& gen);
-			Value rollout_eval(const Position& pos,
-					NumberPopper& popper, boost::mt19937& gen);
+			/* Value rollout_eval(const Position& pos, */
+			/* 		NumberPopper& popper, boost::mt19937& gen); */
 
 			template<typename UiEnv> friend class deps::Environment;
 		public:
 			RolloutEvaluator();
 			Value evaluate(const Position&) override;
-			void batch_evaluate(std::vector<search::UserNode*>&) override;
+			void batch_evaluate(std::vector<search::UserNode*>&, TimeSpan) override;
 	};
 
 }

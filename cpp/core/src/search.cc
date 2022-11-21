@@ -191,29 +191,41 @@ namespace c20::search {
 		node_container->reset(pos);
 
 		int pow_sum = pos.power_sum();
+		int big_nums = pos.count_above(7);
+		int bigger_nums = pos.count_above(9);
+
+		TimeSpan time = 1 + (bigger_nums + big_nums)/2 + pow_sum /2500;
+
 		int depth = 1;
-		int max_node_count = 1000;
-
-		//TODO design mechanism for time management, below is terrible
-		if (pow_sum > 1800) depth = 2;
-		if (pos.highest() == 11) depth = 1;
-
-		if (pow_sum > 3000)
-			depth = 2;
-		if (pos.highest() == 12) depth = 1;
-
-		if (pow_sum > 5200) depth = 2;
-		if (pow_sum > 5500) {
-			depth = 10;
-		} 
-		if (pow_sum > 5800) {
-			depth = 10;
-			max_node_count = 20000;
-		} 
-		if (pow_sum > 6100) {
-			depth = 10;
-			max_node_count = 10000;
-		} 
+		int max_node_count = 10000;
+		
+		switch (time) {
+			case 0:
+			case 1:
+			case 2:
+				depth = 1;
+				break;
+			case 3:
+			case 4:
+			case 5:
+				depth = 2;
+				break;
+			case 6:
+				depth = 3;
+				break;
+			case 7:
+				depth = 5;
+				max_node_count = 20000;
+				break;
+			case 8:
+				depth = 5;
+				max_node_count = 30000;
+				break;
+			default:
+				depth = 5;
+				max_node_count = 40000;
+				break;
+		}
 		
 		for (int i = 0; i < depth; i++) {
 			if (node_container->usernode_count() > max_node_count) break;
@@ -222,7 +234,7 @@ namespace c20::search {
 		}
 		
 		auto final_nodes = node_container->get_final_nodes();
-		node_eval->batch_evaluate(final_nodes);
+		node_eval->batch_evaluate(final_nodes, time);
 
 		graph_evaluator->evaluate(node_container);
 		auto dir = graph_evaluator->pick_one(node_container);
@@ -243,7 +255,7 @@ namespace c20::search {
 			int new_nodes = graph_searcher->search_level();
 			if (new_nodes == 0) break;
 			auto final_nodes = node_container->get_final_nodes();
-			node_eval->batch_evaluate(final_nodes);
+			node_eval->batch_evaluate(final_nodes, 10);
 			graph_evaluator->evaluate(node_container);
 			anal.deep_values.push_back(node_container->children_evals());
 		}

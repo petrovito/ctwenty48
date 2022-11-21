@@ -19,7 +19,8 @@ namespace c20::cnn {
 		return new NeuralEvaluator((cppflow::model(model_path)));
 	}
 
-	void NeuralEvaluator::batch_evaluate(std::vector<search::UserNode*>& nodes)
+	void NeuralEvaluator::batch_evaluate(
+			std::vector<search::UserNode*>& nodes, search::TimeSpan time)
 	{
 		auto input_tensor = tensor_from_pos(nodes);
 		auto output = model(input_tensor).get_data<float>();

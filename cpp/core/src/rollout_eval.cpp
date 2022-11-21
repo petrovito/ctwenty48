@@ -23,17 +23,33 @@ namespace c20::search {
 	}
 
 
-	void RolloutEvaluator::batch_evaluate(std::vector<search::UserNode*>& nodes)
+	void RolloutEvaluator::batch_evaluate(
+			std::vector<search::UserNode*>& nodes, TimeSpan time)
 	{
+		int discover_time = time *100000;
+		int grain = std::max(1, (int)(10000 * nodes.size() / discover_time));
+
 		std::vector<Value> evals(nodes.size());
-		parallel_for(blocked_range<size_t>(0, nodes.size()),
+		std::vector<uint64_t> sum_rollouts(nodes.size());
+		std::vector<uint32_t> rollout_counts(nodes.size());
+		parallel_for(blocked_range<size_t>(0, nodes.size(), grain),
 				[&] (const auto& r) {
 			auto popper_copy = *popper;
 			auto gen_copy = gen;
+			int range_disc_time = r.size() * discover_time / nodes.size();
+			/* spdlog::info("{}, {}, {}, {}, ",range_disc_time, r.size(), discover_time, nodes.size()); */
+
+			while (range_disc_time > 0)
+				for (auto it = r.begin(); it != r.end(); it++)
+				{
+					auto move_count = roll_out(nodes[it]->pos, popper_copy, gen_copy);
+					sum_rollouts[it] +=  move_count;
+					rollout_counts[it]++;
+					range_disc_time -= move_count +1;
+				}
+
 			for (auto it = r.begin(); it != r.end(); it++)
-			{
-				evals[it] = rollout_eval(nodes[it]->pos, popper_copy, gen_copy);			
-			}
+				evals[it] = ((Value) sum_rollouts[it]) / rollout_counts[it];
 		});
 		auto max_eval = *std::max_element(evals.begin(), evals.end())
 			+ .1; //add small sentinel, so that evals won't equal to 1
@@ -74,28 +90,16 @@ namespace c20::search {
 		return move_count;
 	}
 
-	Value RolloutEvaluator::rollout_eval(const Position& pos, 
-			NumberPopper& popper, boost::mt19937& gen)
-	{
-		std::vector<int> rollout_results;
-		int pow_sum = pos.power_sum();
-		int num_rollouts = 50;
-		if (pow_sum > 2000) num_rollouts = 100;
-		if (pow_sum > 3000) num_rollouts = 50;
-		if (pow_sum > 3500) num_rollouts = 100;
-
-		if (pos.highest() == 12) num_rollouts = 25;
-
-		if (pow_sum > 4500) num_rollouts = 50;
-		if (pow_sum > 5200) num_rollouts = 10;
-		if (pow_sum > 7000) num_rollouts = 15;
-
-		for (int i = 0; i < num_rollouts; i++)
-		{
-			rollout_results.push_back(roll_out(pos, popper, gen));
-		}
-		return (double)(std::accumulate(rollout_results.begin(), rollout_results.end(), 0))
-			/ rollout_results.size();
-	}
+	/* Value RolloutEvaluator::rollout_eval(const Position& pos, */ 
+	/* 		NumberPopper& popper, boost::mt19937& gen) */
+	/* { */
+	/* 	std::vector<int> rollout_results; */
+	/* 	for (int i = 0; i < num_rollouts; i++) */
+	/* 	{ */
+	/* 		rollout_results.push_back(roll_out(pos, popper, gen)); */
+	/* 	} */
+	/* 	return (double)(std::accumulate(rollout_results.begin(), rollout_results.end(), 0)) */
+	/* 		/ rollout_results.size(); */
+	/* } */
 } 
 

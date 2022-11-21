@@ -257,6 +257,13 @@ namespace c20::commons {
 
 		return highests;
 	}
+
+	int Position::count_above(int threshold) const
+	{
+		auto loc_table = (Number*) table;
+		return std::count_if(loc_table, loc_table +NUM_SQUARES,
+				[threshold] (auto& num) {return num > threshold;});
+	}
 	
 	Position Position::from_str(std::string &&table_str)
 	{

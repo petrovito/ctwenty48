@@ -159,11 +159,15 @@ namespace c20::search {
 	};
 
 
+	/** Available time. */
+	typedef int TimeSpan;
+
+
 	class NodeEvaluator
 	{
 		public:
 			virtual Value evaluate(const Position&) = 0;
-			virtual void batch_evaluate(std::vector<UserNode*>&) = 0;
+			virtual void batch_evaluate(std::vector<UserNode*>&, TimeSpan) = 0;
 			virtual ~NodeEvaluator() = default;
 	};
 
