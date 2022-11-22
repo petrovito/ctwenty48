@@ -11,7 +11,7 @@ namespace c20::selectors {
 	class MoveSelector
 	{
 		protected:
-			Position pos;
+			Position pos_;
 		public:
 			virtual void set_position(const Position&);
 			virtual UserMove make_move() = 0;

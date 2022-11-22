@@ -198,12 +198,12 @@ namespace c20::search {
 
 	UserMove SearchManager::make_move()
 	{
-		node_container->reset(pos);
+		node_container->reset(pos_);
 
-		int pow_sum = pos.power_sum();
-		int medium_nums = pos.count_above(5);
-		int big_nums = pos.count_above(7);
-		int bigger_nums = pos.count_above(9);
+		int pow_sum = pos_.power_sum();
+		int medium_nums = pos_.count_above(5);
+		int big_nums = pos_.count_above(7);
+		int bigger_nums = pos_.count_above(9);
 
 		TimeSpan time = 1 + (medium_nums + bigger_nums + 2*big_nums)/3 + pow_sum /2000;
 
@@ -281,6 +281,11 @@ namespace c20::search {
 		root(usernode_buf)
 	{}
 
+	NodeContainer::~NodeContainer()
+	{
+		delete[] usernode_buf;
+		delete[] randomnode_buf; 
+	}
 
 	UserNode* NodeContainer::push_usernode(Position& pos)
 	{

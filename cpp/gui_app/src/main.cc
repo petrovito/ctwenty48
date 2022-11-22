@@ -12,8 +12,8 @@ int main()
 	spdlog::set_level(spdlog::level::debug);
 
 	c20::deps::EnvSpecs specs{
-		.move_selector=c20::deps::SearchManager,
-		.node_eval=c20::deps::Rollout
+		.move_selector=c20::deps::MCTS,
+		/* .node_eval=c20::deps::Rollout */
 		/* .nn_model_path = "neural-net/models/synth_2/" */
 	};
 	c20::deps::Environment<c20::deps::GuiEnv> env(specs);

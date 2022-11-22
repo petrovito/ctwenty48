@@ -96,7 +96,6 @@ namespace c20::search {
 	{
 		Evaluation eval;
 	
-		ZeroIndices zeros;
 		/** Distribution of children nodes. */
 		std::vector<std::pair<Probability, UserNode*>> children;
 
@@ -126,6 +125,7 @@ namespace c20::search {
 
 		public:
 			NodeContainer();
+			~NodeContainer();
 			UserNode* push_usernode(Position&);
 			RandomNode* push_randomnode(Position&);
 			void reset(const Position&);
@@ -154,7 +154,7 @@ namespace c20::search {
 			template<typename UiEnv> friend class deps::Environment;
 		public:
 			GraphSearcher() = default;
-			GraphSearcher(NumberPopper*, NodeContainer*); //gets a copy
+			GraphSearcher(NumberPopper*, NodeContainer*);
 			int search_level();
 	};
 

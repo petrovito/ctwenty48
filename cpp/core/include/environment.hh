@@ -2,6 +2,7 @@
 #include "game_logger.hh"
 #include "game_play.hh"
 #include "mc_estimate.hh"
+#include "mcts.hh"
 #include "rollout_eval.hh"
 #include "search.hh"
 #include "ui.hh"
@@ -13,7 +14,7 @@
 namespace c20::deps {
 	
 	
-	enum MoveSelector { SearchManager, RandomSelector, MCE };
+	enum MoveSelector { SearchManager, RandomSelector, MCE, MCTS };
 	enum NodeEvaluator { CNN, Rollout };
 	enum UI { NONE, C2048 };
 
@@ -56,6 +57,9 @@ namespace c20::deps {
 			std::unique_ptr<selectors::RandomSelector> random_selector;
 			std::unique_ptr<search::SearchManager> search_manager;
 			std::unique_ptr<search::MonteCarloEstimator> mc_estimator;
+
+			std::unique_ptr<mcts::MCTS> mcts;
+			std::unique_ptr<mcts::NodeContainer> mcts_nodes;
 
 			search::NodeEvaluator* node_eval;
 			std::unique_ptr<search::RolloutEvaluator> rollout_eval;
@@ -101,6 +105,11 @@ namespace c20::deps {
 						mc_estimator = std::make_unique<search::MonteCarloEstimator>();
 						move_selector = mc_estimator.get();
 						break;
+					case MCTS:
+						mcts = std::make_unique<mcts::MCTS>();
+						mcts_nodes = std::make_unique<mcts::NodeContainer>();
+						move_selector = mcts.get();
+						break;
 				}
 
 				ui_env.instantiate_beans();
@@ -125,6 +134,10 @@ namespace c20::deps {
 						break;
 					case MCE:
 						mc_estimator->popper(number_popper.get());
+						break;
+					case MCTS:
+						mcts->number_popper = number_popper.get();
+						mcts->node_container = mcts_nodes.get();
 						break;
 				}
 

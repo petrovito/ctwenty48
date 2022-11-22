@@ -13,7 +13,7 @@ namespace c20::selectors {
 
 	void MoveSelector::set_position(const Position& _pos)
 	{
-		pos = _pos;
+		pos_ = _pos;
 	}
 
 	RandomSelector::RandomSelector() :
@@ -23,12 +23,12 @@ namespace c20::selectors {
 
 	UserMove RandomSelector::make_move()
 	{
-		if (pos.is_over()) throw std::exception();
+		if (pos_.is_over()) throw std::exception();
 		while (1)
 		{
 			int num = uniform(gen);
 			MoveDirection random_dir = MoveDirection(num);
-			auto result = pos.calc_move(random_dir);
+			auto result = pos_.calc_move(random_dir);
 			if (result.has_changed) return UserMove{random_dir};
 		}
 	}

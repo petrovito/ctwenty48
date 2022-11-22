@@ -36,7 +36,7 @@ namespace c20::search {
 	UserMove MonteCarloEstimator::make_move()
 	{
 		std::array<Value, NUM_DIRECTIONS> evals;
-		auto pow_sum = pos.power_sum();
+		auto pow_sum = pos_.power_sum();
 
 		parallel_for(blocked_range<size_t>(0, NUM_DIRECTIONS),
 				[&] (const auto& r)
@@ -44,7 +44,7 @@ namespace c20::search {
 			for (auto it = r.begin(); it != r.end(); it++)
 			{
 				MoveDirection dir = static_cast<MoveDirection>(it);
-				auto effect = pos.calc_move(dir);
+				auto effect = pos_.calc_move(dir);
 				evals[dir] = effect.has_changed ? 
 					estimate_eval(effect, dir, pow_sum) : 0;
 			}
