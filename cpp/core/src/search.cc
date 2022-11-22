@@ -110,23 +110,33 @@ namespace c20::search {
 		eval_and_set(random_node->eval);
 
 #if USE_MULT
+		double multiplier = 1;
 		auto highests = random_node->pos.highest(3);
 		auto first = highests[0];
 		if (
 				first.idx == 0 || first.idx == 3 || 
 				first.idx == 12 || first.idx == 15
 		) {
-			random_node->eval.value *= 2.5;
+			multiplier *= 2.5;
 			auto second = highests[1];
 			auto idx_diff = first.idx - second.idx;
 			auto idx_diff_abs = std::abs(idx_diff);
 			if (idx_diff_abs == 1 || idx_diff_abs == TABLE_SIZE) {
-				random_node->eval.value *= 1.5;
+				multiplier *= 1.5;
 				auto third = highests[2];
 				auto idx_diff_2 = second.idx - third.idx;
 				if (idx_diff == idx_diff_2)
-					random_node->eval.value *= 1.5;
+					multiplier *= 1.2;
 			}
+			
+			random_node->eval.value *= multiplier;
+			/* for (int i = BIN_COUNT -1; i >= 0; i--) */
+			/* { */
+			/* 	int target = std::min(BIN_COUNT -1, (int)(i*multiplier/2)); */
+			/* 	random_node->eval.dist.bins[target] += */ 
+			/* 		random_node->eval.dist.bins[i]; */
+			/* 	random_node->eval.dist.bins[i] = 0.; */
+			/* } */
 		}
 #endif
 	}
@@ -144,18 +154,18 @@ namespace c20::search {
 			eval.value += bin_prob * i;
 		}
 #elif USE_PERCENTILE
-		float upper_bound = 0.1;
+		float upper_bound = 0.7;
 		float cum_prob = eval.dist.known_ending;
 		float prev_cum_prob = cum_prob;
-		int i = 0;
-		for (; i < BIN_COUNT; i++)
+		for (int i = 0; i < BIN_COUNT; i++)
 		{
 			cum_prob += eval.dist.bins[i];
 			if (cum_prob > upper_bound) {
-				float weight = cum_prob - upper_bound;
-				eval.value = ((i -1) * prev_cum_prob + i * cum_prob) 
-					/ (cum_prob + prev_cum_prob);
+				float weight = upper_bound - prev_cum_prob;
+				eval.value += weight *i;
 				break;
+			} else {
+				eval.value += i * eval.dist.bins[i];
 			}
 			prev_cum_prob = cum_prob;
 		}
@@ -191,10 +201,11 @@ namespace c20::search {
 		node_container->reset(pos);
 
 		int pow_sum = pos.power_sum();
+		int medium_nums = pos.count_above(5);
 		int big_nums = pos.count_above(7);
 		int bigger_nums = pos.count_above(9);
 
-		TimeSpan time = 1 + (bigger_nums + big_nums)/2 + pow_sum /2500;
+		TimeSpan time = 1 + (medium_nums + bigger_nums + 2*big_nums)/3 + pow_sum /2000;
 
 		int depth = 1;
 		int max_node_count = 10000;
