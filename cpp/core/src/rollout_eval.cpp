@@ -2,6 +2,7 @@
 #include "types.hh"
 #include <algorithm>
 #include <boost/random/mersenne_twister.hpp>
+#include <numeric>
 #include <oneapi/tbb/parallel_for.h>
 #include <rollout_eval.hh>
 #include <spdlog/spdlog.h>
@@ -17,9 +18,15 @@ namespace c20::search {
 	{  }
 
 
-	Value RolloutEvaluator::evaluate(const Position &)
+	Value RolloutEvaluator::evaluate(const Position& pos)
 	{
-		throw "UNIMPLEMENTED";
+		std::vector<int> game_lengths;
+		for (int i = 0; i < 10; i++)
+		{
+			game_lengths.push_back(roll_out(pos, *popper, gen));
+		}
+		return (double)(std::reduce(game_lengths.begin(), game_lengths.end(), 0)) / 
+			game_lengths.size();
 	}
 
 
