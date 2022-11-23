@@ -202,7 +202,7 @@ namespace c20::mcts {
 			move_count = 1;
 		}
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 1; i++) {
 			Position pos_copy = pos;
 			move_count += 2 * rollout_pos(pos_copy, *number_popper, gen);
 		}
@@ -218,9 +218,16 @@ namespace c20::mcts {
 		{
 			if (pos.is_over()) break;
 			//make random move
+			double weights[] {1,1,1,1};
+			auto highest_idx = pos.highest(1)[0].idx;
+			if (highest_idx == 0 || highest_idx == 3) weights[UP] = 2;
+			if (highest_idx == 15 || highest_idx == 3) weights[RIGHT] = 2;
+			if (highest_idx == 0 || highest_idx == 12) weights[LEFT] = 2;
+			if (highest_idx == 12 || highest_idx == 15) weights[DOWN] = 2;
+			disc_dist dist(weights, weights+4);
 			while (1)
 			{
-				int dir_num = uniform(gen);
+				int dir_num = dist(gen);
 				MoveDirection random_dir = MoveDirection(dir_num);
 				auto result = pos.calc_move(random_dir);
 				if (result.has_changed)
@@ -256,6 +263,8 @@ namespace c20::mcts {
 						first.idx == 0 || first.idx == 3 || 
 						first.idx == 12 || first.idx == 15
 				) {
+#define MMMULT 2.9
+#define ELSE_MULT(idx, denom) multiplier *= 1 + (double)(3*node->pos[idx]) *(MMMULT-2) / denom
 					multiplier *= 1.1;
 					auto second = highests[1];
 					auto idx_diff = first.idx - second.idx;
@@ -265,17 +274,22 @@ namespace c20::mcts {
 						auto third = highests[2];
 						auto idx_diff_2 = second.idx - third.idx;
 						if (idx_diff == idx_diff_2) {
-							multiplier *= 1.5;
+							multiplier *= MMMULT;
 							auto fourth = highests[3];
 							auto idx_diff_3 = third.idx - fourth.idx;
 							if (idx_diff == idx_diff_3) {
-								multiplier *= 2.2;
+								multiplier *= MMMULT;
 								auto fifth = highests[4];
 								auto idx_diff_4 = fourth.idx - fifth.idx;
 								auto idx_diff_4_abs = std::abs(idx_diff_4);
 								if (idx_diff_4_abs == 1 || idx_diff_4_abs == 4)
-									multiplier *= 1.5;
+									multiplier *= MMMULT;
+								/* else ELSE_MULT(idx, denom); */
+							} else {
+								ELSE_MULT(third.idx + idx_diff, fourth.num);
 							}
+						} else {
+							ELSE_MULT(second.idx + idx_diff, third.num);
 						}
 					}
 				}
@@ -295,9 +309,9 @@ namespace c20::mcts {
 		node_container->reset(pos_);
 
 		int big_nums = pos_.count_above(4) + pos_.count_above(6);
-		int time = pos_.power_sum() / 500 + big_nums + 1;
-		if (pos_.num_zeros() < 4) time *= 2;
-		int iterations = 120 * time;
+		int time = pos_.power_sum() / 1000 + big_nums + 1;
+		if (pos_.num_zeros() < 3) time *= 2;
+		int iterations = 195 * time;
 
 		int checkpoints = 5;
 		int it_per_checkp = iterations / checkpoints;

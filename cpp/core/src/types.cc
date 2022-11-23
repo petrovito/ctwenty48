@@ -56,10 +56,6 @@ namespace c20::commons {
 		return &positions.back();
 	}
 
-	GeneralDirection general(MoveDirection direction) 
-	{
-		return GeneralDirection(direction >> 1);
-	}
 
 	PositionIterator Game::history() 
 	{

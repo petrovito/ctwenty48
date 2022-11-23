@@ -35,11 +35,6 @@ namespace c20::commons {
 
 	typedef uint8_t Number;
 
-	enum GeneralDirection {
-		VERTICAL,
-		HORIZONTAL,
-	};
-
 	enum MoveDirection 
 	{
 		UP,
@@ -247,11 +242,6 @@ namespace c20::commons {
 
 	extern int start_indices[NUM_DIRECTIONS][TABLE_SIZE];
 	extern int deltas[NUM_DIRECTIONS];
-
-
-
-
-	GeneralDirection general(MoveDirection);
 
 }
 

@@ -56,7 +56,8 @@ namespace c20::core {
 		spdlog::info("Playing one game.");
 		StateLocker state_lock(game_state);
 
-		current_game = std::unique_ptr<Game>(Game::start_game());
+		current_game = std::unique_ptr<Game>(new Game(Position::from_str(
+						"9999|9999|0000|0000")));
 		while (!current_game->is_over())
 		{
 			set_position_for_handlers(*(current_game->current_position()));
@@ -74,7 +75,9 @@ namespace c20::core {
 	{
 		exchange_or_throw(game_state, IDLE, GAME_STARTED);
 		spdlog::info("Starting game.");
-		current_game = std::unique_ptr<Game>(Game::start_game());
+		/* current_game = std::unique_ptr<Game>(Game::start_game()); */
+		current_game = std::unique_ptr<Game>(new Game(Position::from_str(
+						"9999|9999|9999|9000")));
 		set_position_for_handlers(*(current_game->current_position()));
 	}
 
