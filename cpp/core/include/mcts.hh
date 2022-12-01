@@ -54,6 +54,7 @@ namespace c20::mcts {
 	struct RandomNode : public Node
 	{
 		double uct_value;
+		double pos_score;
 
 		/** Distribution of children nodes. */
 		std::vector<UserNode*> children;
@@ -76,18 +77,17 @@ namespace c20::mcts {
 			UserNode *root;
 			int usernode_idx, randomnode_idx;
 
-			/* std::unordered_map<Position, UserNode*, PositionHasher> usernode_map; */
-			/* std::unordered_map<Position, RandomNode*, PositionHasher> randomnode_map; */
+			std::unordered_map<Position, UserNode*, PositionHasher> usernode_map;
+			std::unordered_map<Position, RandomNode*, PositionHasher> randomnode_map;
 
 		public:
 			NodeContainer();
 			~NodeContainer();
 			UserNode* push_usernode(Position&);
-			RandomNode* push_randomnode(Position&);
+			RandomNode* push_randomnode(Position&, Value score);
 			void reset(const Position&);
 			inline UserNode* root_node() {return root;};
 			inline int usernode_count() {return usernode_idx;};
-
 	};
 
 
@@ -98,6 +98,7 @@ namespace c20::mcts {
 		private:
 			NodeContainer* node_container;
 			NumberPopper* number_popper;
+			search::NodeEvaluator* node_eval;
 			boost::random::mt19937 gen;
 			boost::random::uniform_int_distribution<> uniform;
 

@@ -15,7 +15,8 @@ add_library(ctwenty48_core STATIC
 	src/search.cc
 	src/mc_estimate.cc
 	src/cnn.cc
-	src/rollout_eval.cpp
+	src/rollout_eval.cc
+	src/pos_score.cc
 	src/mcts.cc
 	src/game_logger.cc
 	src/selectors.cc

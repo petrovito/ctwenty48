@@ -3,6 +3,7 @@
 #include "game_play.hh"
 #include "mc_estimate.hh"
 #include "mcts.hh"
+#include "pos_score.hh"
 #include "rollout_eval.hh"
 #include "search.hh"
 #include "ui.hh"
@@ -15,7 +16,7 @@ namespace c20::deps {
 	
 	
 	enum MoveSelector { SearchManager, RandomSelector, MCE, MCTS };
-	enum NodeEvaluator { CNN, Rollout };
+	enum NodeEvaluator { None, CNN, Rollout, Static };
 	enum UI { NONE, C2048 };
 
 
@@ -26,7 +27,7 @@ namespace c20::deps {
 	struct EnvSpecs
 	{
 		MoveSelector move_selector = SearchManager;
-		NodeEvaluator node_eval = CNN;
+		NodeEvaluator node_eval = None;
 		UI ui = NONE;
 
 		std::string nn_model_path = "";
@@ -63,6 +64,7 @@ namespace c20::deps {
 
 			search::NodeEvaluator* node_eval;
 			std::unique_ptr<search::RolloutEvaluator> rollout_eval;
+			std::unique_ptr<search::StaticPositionEval> static_eval;
 			std::unique_ptr<cnn::NeuralEvaluator> neural_eval;
 			std::unique_ptr<commons::NumberPopper> number_popper;
 			std::unique_ptr<search::NodeContainer> node_container;
@@ -89,17 +91,6 @@ namespace c20::deps {
 						node_container = std::make_unique<search::NodeContainer>();
 						graph_searcher = std::make_unique<search::GraphSearcher>();
 						graph_evaluator = std::make_unique<search::GraphEvaluator>();
-						switch (specs.node_eval) {
-						case CNN:
-							neural_eval = std::unique_ptr<cnn::NeuralEvaluator>(
-									cnn::NeuralEvaluator::load_from(specs.nn_model_path));
-							node_eval = neural_eval.get();
-							break;
-						case Rollout:
-							rollout_eval = std::make_unique<search::RolloutEvaluator>();
-							node_eval = rollout_eval.get();
-							break;
-						}
 						break;
 					case MCE:
 						mc_estimator = std::make_unique<search::MonteCarloEstimator>();
@@ -109,6 +100,23 @@ namespace c20::deps {
 						mcts = std::make_unique<mcts::MCTS>();
 						mcts_nodes = std::make_unique<mcts::NodeContainer>();
 						move_selector = mcts.get();
+						break;
+				}
+				switch (specs.node_eval) {
+					case None:
+						break;
+					case CNN:
+						neural_eval = std::unique_ptr<cnn::NeuralEvaluator>(
+								cnn::NeuralEvaluator::load_from(specs.nn_model_path));
+						node_eval = neural_eval.get();
+						break;
+					case Rollout:
+						rollout_eval = std::make_unique<search::RolloutEvaluator>();
+						node_eval = rollout_eval.get();
+						break;
+					case Static:
+						static_eval = std::make_unique<search::StaticPositionEval>();
+						node_eval = static_eval.get();
 						break;
 				}
 
@@ -138,6 +146,7 @@ namespace c20::deps {
 					case MCTS:
 						mcts->number_popper = number_popper.get();
 						mcts->node_container = mcts_nodes.get();
+						mcts->node_eval = node_eval;
 						break;
 				}
 
