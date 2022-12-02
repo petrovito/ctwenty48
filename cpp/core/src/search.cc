@@ -95,7 +95,7 @@ namespace c20::search {
 	}
 
 
-#define USE_MULT       1
+#define USE_MULT       0
 
 	void GraphEvaluator::eval_randomnode_recursive(RandomNode* random_node)
 	{
