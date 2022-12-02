@@ -50,6 +50,7 @@ if (BUILD_TEST)
 		test/csv_test.cc
 		test/selector_test.cc
 		test/cnn_test.cc
+		test/pos_score_test.cc
 		)
 	target_link_libraries(unit_test CONAN_PKG::gtest ctwenty48_core)
 	gtest_discover_tests(unit_test)
