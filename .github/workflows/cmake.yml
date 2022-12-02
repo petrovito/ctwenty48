@@ -50,5 +50,5 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}/build/core
-      run: ln -s ../neural-net neural-net && ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+      run: ln -s ../../neural-net neural-net && ctest -C ${{env.BUILD_TYPE}} --output-on-failure
       
