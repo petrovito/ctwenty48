@@ -53,11 +53,12 @@ namespace c20::core {
 
 	std::unique_ptr<Game> GamePlayer::play_a_game()
 	{
-		spdlog::info("Playing one game.");
+		spdlog::trace("Playing one game.");
 		StateLocker state_lock(game_state);
 
 		current_game = std::unique_ptr<Game>(new Game(Position::from_str(
-						"9999|9999|0000|0000")));
+						/* "9999|9999|0000|0000"))); */
+						"0000|1200|0000|0000")));
 		while (!current_game->is_over())
 		{
 			set_position_for_handlers(*(current_game->current_position()));

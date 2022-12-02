@@ -8,9 +8,6 @@
 #include <spdlog/spdlog.h>
 #include <vector>
 
-#define const_C 500
-#define const_D 500
-
 namespace c20::mcts {
 
 	Node::Node(const Position& pos, bool random_node) :
@@ -112,11 +109,8 @@ namespace c20::mcts {
 		for (auto child: node->children) 
 		{
 			if (child == nullptr) continue;
-			/* auto score_mult = 1 + child->pos_score/((parent_visit_count +1)); */
-			/* auto score_mult = child->pos_score; */
-			double score_mult = 1;
 			child->uct_value = 
-				score_mult * child->eval + 
+				child->eval + 
 				const_C * std::sqrt(
 					std::log(parent_visit_count) / (child->visit_count))
 				;
@@ -258,33 +252,32 @@ namespace c20::mcts {
 
 	void MCTS::back_propagate(Path& path, uint32_t move_count)
 	{
-		double propagate_value = -999;
-		double multiplier = 1.;
+		max_eval = -1;
+		double highest_score = -1.;
+		
 		for (int i = path.size() -1; i >= 0; i--)
 		{
 			auto node = path[i];
 			node->visit_count++;
 			if (node->random_node) {
 				auto rnode = static_cast<RandomNode*>(node);
-				/* double loc_multiplier = 1 + (rnode->pos_score / rnode->visit_count); */
-				multiplier = std::max(multiplier, rnode->pos_score);
-				double mult = 1 + multiplier / std::pow(rnode->visit_count, .5);
-				propagate_value = std::max(
-						/* propagate_value + 2 * multiplier, */
-						0.,
-						move_count * mult
-						);
-				node->move_sum += propagate_value;
+				highest_score = std::max(highest_score, rnode->pos_score);
+				double mult = 1 + highest_score / std::pow(rnode->visit_count, 0.75);
+				node->move_sum += move_count * mult;
 				node->eval = (double)(node->move_sum) / node->visit_count;
+				max_eval = std::max(max_eval, node->eval);
 			}
 			move_count++;
 		}
+
+		const_C = std::sqrt(2) * max_eval;
 	}
 
 
 	UserMove MCTS::make_move()
 	{
 		node_container->reset(pos_);
+		const_C = 10000;
 
 		int big_nums = pos_.count_above(4) + pos_.count_above(6);
 		int time = pos_.power_sum() / 1000 + big_nums + 1;
@@ -310,7 +303,7 @@ namespace c20::mcts {
 					visit_counts.push_back(child->visit_count);
 				else visit_counts.push_back(-1);
 			std::sort(visit_counts.begin(), visit_counts.end());
-			if (visit_counts[3] > (double)(visit_counts[2]) *(1+1./(1+cp)))
+			if (visit_counts[3] > (double)(visit_counts[2]) *(1+2./(1+cp)))
 				break;
 			/* else { */
 			/* 	if (cp == checkpoints -1) */

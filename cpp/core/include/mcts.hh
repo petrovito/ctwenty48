@@ -24,7 +24,7 @@ namespace c20::mcts {
 
 		uint32_t visit_count = 0;
 		/** Sum of all moves made below this node. */
-		uint64_t move_sum = 0;
+		double move_sum = 0;
 		bool leef_node = true;
 		Value eval = 0;
 
@@ -111,6 +111,9 @@ namespace c20::mcts {
 			Node*  expand(Path&);
 			uint32_t rollout(Node*);
 			void back_propagate(Path&, uint32_t);
+
+			double const_C;
+			double max_eval;
 			
 
 			template<typename UiEnv> friend class deps::Environment;

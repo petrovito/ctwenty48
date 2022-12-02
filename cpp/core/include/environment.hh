@@ -8,6 +8,7 @@
 #include "search.hh"
 #include "ui.hh"
 #include <memory>
+#include <spdlog/spdlog.h>
 #include <types.hh>
 #include <cnn.hh>
 
@@ -166,6 +167,7 @@ namespace c20::deps {
 			//TODO this function doesn't belong here. Move it!
 			void play_games(int num_games, const std::string& path)
 			{
+				spdlog::info("Playing {} games.", num_games);
 				std::unique_ptr<misc::GameLogger> logger(path.empty() ?
 						nullptr : new misc::GameLogger(path));
 				for (int i = 0; i < num_games; i++)

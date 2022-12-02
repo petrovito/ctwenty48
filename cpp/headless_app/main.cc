@@ -22,9 +22,10 @@ int main(int argc, char** args) {
 		("help", "produce help message")
 		("random", "random games")
 		("num", po::value<int>()->default_value(1), "number of games to play")
-		("log-path", po::value<string>()->default_value("/dev/stdout"), "game logs path")
+		("log-path", po::value<string>()->default_value("/dev/null"), "game logs path")
 		("model-path", po::value<string>()->default_value("neural-net/models/v1"), "model path")
 		("mce", "Monte Carlo estimator")
+		("mcts", "Monte Carlo Tree Search")
 		("rollout", "Rollout node evaluator")
 		;
 
@@ -42,6 +43,10 @@ int main(int argc, char** args) {
 	} else if (vm.count("mce")) {
 		spdlog::info("Using MCE.");
 		specs.move_selector = c20::deps::MCE;
+	} else if (vm.count("mcts")) {
+		spdlog::info("Using MCTS.");
+		specs.move_selector = c20::deps::MCTS;
+		specs.node_eval = c20::deps::Static;
 	} else {
 		spdlog::info("Using search manager.");
 		if (vm.count("rollout")) {

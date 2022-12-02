@@ -1,5 +1,6 @@
 #include "types.hh"
 #include <cmath>
+#include <fmt/format.h>
 #include <pos_score.hh>
 #include <utility>
 
@@ -21,13 +22,34 @@ namespace c20::search {
 				if (idx_diff == 1) return 11;
 				else return 14;
 		}
-		throw std::runtime_error("should NOT happen");
+		throw std::runtime_error(fmt::format(
+					"should NOT happen: corner is {}, dir is {}",
+					fourth_idx, idx_diff));
 	}
 
 	bool is_corner(int idx) 
 	{
 		return idx == 0 || idx == 3 || 
 				idx == 12 || idx == 15;
+	}
+
+
+	bool are_neighbours(int first_idx, int second_idx)
+	{
+		switch (first_idx) {
+			case 0:
+				return second_idx == 1 || second_idx == 4;
+			case 3:
+				return second_idx == 2 || second_idx == 7;
+			case 12:
+				return second_idx == 13 || second_idx == 8;
+			case 15:
+				return second_idx == 14 || second_idx == 11;
+			default:
+				throw std::runtime_error(fmt::format(
+							"should NOT happen: corner is {}",
+							first_idx));
+		}
 	}
 
 
@@ -39,11 +61,10 @@ namespace c20::search {
 		if (is_corner(first.idx)) {
 			main_path.len++;
 			auto second = highests[1];
-			auto idx_diff = second.idx - first.idx;
-			auto idx_diff_abs = std::abs(idx_diff);
-			if (idx_diff_abs == 1 || idx_diff_abs == TABLE_SIZE) {
+			if (are_neighbours(first.idx, second.idx)) {
 				//two highest next to each other
 				main_path.len++;
+				auto idx_diff = second.idx - first.idx;
 				auto third = highests[2];
 				auto third_idx = second.idx + idx_diff;
 				if (third.num == pos[third_idx]) {
