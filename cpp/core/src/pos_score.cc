@@ -104,30 +104,10 @@ namespace c20::search {
 		//score multiplier based on length of high path
 		Value score = 1;
 		path_attr main_path = find_main_path(pos);
-		switch (main_path.len) {
-			case 0:
-				score = 1;
-				break;
-			case 1:
-				score = 2;
-				break;
-			case 2:
-				score = 4;
-				break;
-			case 3:
-				score = 8;
-				break;
-			case 4:
-				score = 26;
-				break;
-			case 5:
-				score = 40;
-				break;
-			default:
-				break;
-		}
-		score *= 1 + 2.7 * std::pow(
-				(double) (main_path.breaker_num) / main_path.optimal_num, 2);
+		score *= params.main_path_mults[main_path.len];
+		score *= 1 + params.breaker_mult * 
+			std::pow( (double) (main_path.breaker_num) / main_path.optimal_num,
+					params.breaker_pow);
 		//TODO incentivize joining numbers
 		return score;
 	}

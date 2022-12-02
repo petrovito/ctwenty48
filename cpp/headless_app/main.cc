@@ -26,6 +26,7 @@ int main(int argc, char** args) {
 		("model-path", po::value<string>()->default_value("neural-net/models/v1"), "model path")
 		("mce", "Monte Carlo estimator")
 		("mcts", "Monte Carlo Tree Search")
+		("params", po::value<string>()->default_value(""), "Monte Carlo Tree Search params file location")
 		("rollout", "Rollout node evaluator")
 		;
 
@@ -47,6 +48,8 @@ int main(int argc, char** args) {
 		spdlog::info("Using MCTS.");
 		specs.move_selector = c20::deps::MCTS;
 		specs.node_eval = c20::deps::Static;
+		if (vm.count("params"))
+			specs.mcts_param_path = vm["params"].as<string>();
 	} else {
 		spdlog::info("Using search manager.");
 		if (vm.count("rollout")) {

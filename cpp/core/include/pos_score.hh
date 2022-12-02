@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mcts.hh"
 #include "search.hh"
 #include "types.hh"
 #include "gtest/gtest_prod.h"
@@ -19,6 +20,9 @@ namespace c20::search {
 	{
 		private:
 			path_attr find_main_path(const Position&);
+			mcts::MctsHyperParams params;
+
+			template<typename UiEnv> friend class deps::Environment;
 			FRIEND_TEST(PosScoreTest, MainPath);
 		public:
 			Value evaluate(const Position &) override;

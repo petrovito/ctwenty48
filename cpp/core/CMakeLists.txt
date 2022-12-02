@@ -32,6 +32,7 @@ target_link_libraries(ctwenty48_core PUBLIC
 	CONAN_PKG::concurrentqueue
 	CONAN_PKG::fmt
 	CONAN_PKG::onetbb
+	CONAN_PKG::yaml-cpp
 	)
 target_include_directories(ctwenty48_core PUBLIC 
 	${CONAN_INCLUDE_DIRS_GTEST}

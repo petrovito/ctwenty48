@@ -11,6 +11,39 @@
 #include <spdlog/spdlog.h>
 #include <types.hh>
 #include <cnn.hh>
+#include <yaml-cpp/node/parse.h>
+#include "yaml-cpp/yaml.h"
+
+
+#define SET_NODE_double(NAME) \
+		if (node[#NAME]) {\
+			params.NAME = node[#NAME].as<double>(); \
+			spdlog::info("Set hyperparam {} to {}", #NAME, params.NAME);\
+		}
+
+#define SET_NODE_vector(NAME) \
+		if (node[#NAME]) {\
+			params.NAME = node[#NAME].as<std::vector<double>>(); \
+		}
+
+namespace YAML {
+	template <>
+	struct convert<c20::mcts::MctsHyperParams> 
+	{
+		static bool decode(const Node& node, c20::mcts::MctsHyperParams& params) 
+		{
+			SET_NODE_double(const_C_mult);
+			SET_NODE_double(decline_pow);
+			SET_NODE_double(rollout_corner_weight);
+			//scoring
+			SET_NODE_vector(main_path_mults);
+			SET_NODE_double(breaker_mult);
+			SET_NODE_double(breaker_pow);
+			return true;
+			//TODO check types
+		}
+	};	
+}
 
 
 namespace c20::deps {
@@ -19,7 +52,6 @@ namespace c20::deps {
 	enum MoveSelector { SearchManager, RandomSelector, MCE, MCTS };
 	enum NodeEvaluator { None, CNN, Rollout, Static };
 	enum UI { NONE, C2048 };
-
 
 	/**
 	 * List of specs for dependencies/beans to use, when injecting
@@ -32,6 +64,7 @@ namespace c20::deps {
 		UI ui = NONE;
 
 		std::string nn_model_path = "";
+		std::string mcts_param_path = "";
 	};
 
 	class NoopUiEnv
@@ -62,6 +95,7 @@ namespace c20::deps {
 
 			std::unique_ptr<mcts::MCTS> mcts;
 			std::unique_ptr<mcts::NodeContainer> mcts_nodes;
+			mcts::MctsHyperParams mcts_params;
 
 			search::NodeEvaluator* node_eval;
 			std::unique_ptr<search::RolloutEvaluator> rollout_eval;
@@ -121,6 +155,13 @@ namespace c20::deps {
 						break;
 				}
 
+				if (!specs.mcts_param_path.empty()) {
+					spdlog::info("Loading hyper params from file: {}", 
+							specs.mcts_param_path);
+					auto yaml_config = YAML::LoadFile(specs.mcts_param_path);
+					mcts_params = yaml_config.as<mcts::MctsHyperParams>();
+				}
+
 				ui_env.instantiate_beans();
 			}
 
@@ -136,10 +177,6 @@ namespace c20::deps {
 
 						graph_searcher->popper = number_popper.get();
 						graph_searcher->node_container = node_container.get();
-
-						if (specs.node_eval == Rollout)
-							rollout_eval->popper = number_popper.get();
-
 						break;
 					case MCE:
 						mc_estimator->popper(number_popper.get());
@@ -148,6 +185,15 @@ namespace c20::deps {
 						mcts->number_popper = number_popper.get();
 						mcts->node_container = mcts_nodes.get();
 						mcts->node_eval = node_eval;
+						mcts->params = mcts_params;
+						break;
+				}
+				switch (specs.node_eval) {
+					case Rollout:
+						rollout_eval->popper = number_popper.get();
+						break;
+					case Static:
+						static_eval->params = mcts_params;
 						break;
 				}
 

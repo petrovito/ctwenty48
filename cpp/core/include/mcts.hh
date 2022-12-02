@@ -93,6 +93,19 @@ namespace c20::mcts {
 
 	typedef std::vector<Node*> Path;
 
+	struct MctsHyperParams
+	{
+		//mcts ops
+		double const_C_mult = std::sqrt(2);
+		double decline_pow = .75;
+		double rollout_corner_weight = 2.;
+		//scoring
+		std::vector<double> main_path_mults{1,2,4,8,26,40};
+		double breaker_mult = 2.7;
+		double breaker_pow = 2.;
+	};
+
+
 	class MCTS : public selectors::MoveSelector
 	{
 		private:
@@ -114,6 +127,8 @@ namespace c20::mcts {
 
 			double const_C;
 			double max_eval;
+
+			MctsHyperParams params;
 			
 
 			template<typename UiEnv> friend class deps::Environment;

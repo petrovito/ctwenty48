@@ -6,6 +6,7 @@ spdlog/[>=1.4.1]
 concurrentqueue/1.0.3
 fmt/9.1.0
 onetbb/2021.7.0
+yaml-cpp/0.7.0
 
 #specify this for conflict resolution
 zlib/1.2.13

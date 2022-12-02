@@ -226,10 +226,14 @@ namespace c20::mcts {
 			//make random move
 			double weights[] {1,1,1,1};
 			auto highest_idx = pos.highest(1)[0].idx;
-			if (highest_idx == 0 || highest_idx == 3) weights[UP] = 2;
-			if (highest_idx == 15 || highest_idx == 3) weights[RIGHT] = 2;
-			if (highest_idx == 0 || highest_idx == 12) weights[LEFT] = 2;
-			if (highest_idx == 12 || highest_idx == 15) weights[DOWN] = 2;
+			if (highest_idx == 0 || highest_idx == 3)
+				weights[UP] = params.rollout_corner_weight;
+			if (highest_idx == 15 || highest_idx == 3)
+				weights[RIGHT] = params.rollout_corner_weight;
+			if (highest_idx == 0 || highest_idx == 12)
+				weights[LEFT] = params.rollout_corner_weight;
+			if (highest_idx == 12 || highest_idx == 15)
+				weights[DOWN] = params.rollout_corner_weight;
 			disc_dist dist(weights, weights+4);
 			while (1)
 			{
@@ -262,7 +266,8 @@ namespace c20::mcts {
 			if (node->random_node) {
 				auto rnode = static_cast<RandomNode*>(node);
 				highest_score = std::max(highest_score, rnode->pos_score);
-				double mult = 1 + highest_score / std::pow(rnode->visit_count, 0.75);
+				double mult = 1 + highest_score /
+					std::pow(rnode->visit_count, params.decline_pow);
 				node->move_sum += move_count * mult;
 				node->eval = (double)(node->move_sum) / node->visit_count;
 				max_eval = std::max(max_eval, node->eval);
@@ -270,7 +275,7 @@ namespace c20::mcts {
 			move_count++;
 		}
 
-		const_C = std::sqrt(2) * max_eval;
+		const_C = params.const_C_mult * max_eval;
 	}
 
 
