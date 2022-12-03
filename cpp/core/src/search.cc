@@ -16,13 +16,13 @@ namespace c20::search {
 
 
 
-	UserNode::UserNode(const Position& pos) : Node(pos), children({}), dist({}) {}
+	UserNode::UserNode(const Position& pos) : Node(pos), dist({}), children({}) {}
 	RandomNode::RandomNode(const Position& pos) : Node(pos), eval({}) {}
-	Node::Node(Position pos) : pos(pos), is_final(false), is_over(false) {}
+	Node::Node(Position pos) : pos(pos), is_over(false), is_final(false) {}
 
-	UserNode::UserNode() : Node(), children({}), dist({}) {}
-	RandomNode::RandomNode() : Node(), children({}), eval({}) {}
-	Node::Node() : pos({}), is_final(false), is_over(false) {}
+	UserNode::UserNode() : Node(), dist({}), children({}) {}
+	RandomNode::RandomNode() : Node(), eval({}), children({}) {}
+	Node::Node() : pos({}), is_over(false), is_final(false) {}
 
 
 	GraphSearcher::GraphSearcher(NumberPopper* _popper, NodeContainer* nc) :

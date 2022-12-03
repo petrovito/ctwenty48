@@ -110,6 +110,8 @@ namespace c20::gui {
 				spdlog::info("Frontend request: Exit app.");
 				game_player->exit_app();
 				break;
+			default:
+				break;
 			}
 		}
 		spdlog::debug("Backend receive msg loop shut down.");
@@ -170,6 +172,9 @@ namespace c20::gui {
 							stateinfo_handler->analysis(message.analysis);
 						} else spdlog::error("Analysis failed.");
 						break;
+					default:
+						throw "unhandled case";
+						break;
 					}	
 				} else {
 					spdlog::error("No request found with response msg key: {}.",
@@ -183,6 +188,9 @@ namespace c20::gui {
 				break;
 			case GAME_OVER:
 				stateinfo_handler->game_over();
+				break;
+			default:
+				throw "unhandled case";
 				break;
 			}
 		}
@@ -235,7 +243,7 @@ namespace c20::gui {
 
 	void StateInfoHandler::move_history_view(int key) {
 		auto& history_view = state_info.history_view.get();
-		int history_idx = history_view.current_idx();
+		auto history_idx = history_view.current_idx();
 		bool changed = false;
 		switch (key) {
 			case 37: //LEFT

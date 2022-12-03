@@ -20,6 +20,7 @@ namespace c20::gui {
 
 	enum GuiAction 
 	{
+		NONE,
 		//from frontend
 		START_GAME,
 		ACTIVATE_BOT,
@@ -46,13 +47,13 @@ namespace c20::gui {
 		message_key key = 0;
 		bool is_response = false;
 
-		GuiAction action;
+		GuiAction action = NONE;
 
-		Status status;
+		Status status = OK;
 
-		Position pos;
+		Position pos = {};
 
-		Analysis analysis;
+		Analysis analysis = {};
 	};
 
 

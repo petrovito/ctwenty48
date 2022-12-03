@@ -297,8 +297,8 @@ namespace c20::commons {
 
 	NumberPopper::NumberPopper(double four_weight) :
 		four_weight(four_weight),
-		value_dist(discrete_distribution<>{1, four_weight}),
-		gen(static_cast<std::uint32_t>(std::time(0)))
+		gen(static_cast<std::uint32_t>(std::time(0))),
+		value_dist(discrete_distribution<>{1, four_weight})
 	{ 
 		prob_two = two_weight / (two_weight + four_weight);
 		prob_four = four_weight / (two_weight + four_weight);

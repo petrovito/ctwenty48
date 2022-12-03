@@ -71,11 +71,11 @@ namespace c20::commons {
 	 */
 	struct MoveResultSet
 	{
-		MoveResultSegment segment_results[TABLE_SIZE];
+		MoveResultSegment segment_results[TABLE_SIZE] = {};
 		bool has_changed;
 		MoveDirection dir;
-		MoveResultSegment& operator[](int);
 
+		MoveResultSegment& operator[](int);
 		std::tuple<Position, ZeroIndices> calc_pos_zeros_pair();
 	};
 
@@ -155,7 +155,7 @@ namespace c20::commons {
 	struct MoveResult 
 	{
 		MoveResultType type;
-		Position *new_pos;
+		Position *new_pos = nullptr;
 	};
 
 	
@@ -231,7 +231,7 @@ namespace c20::commons {
 	struct Analysis
 	{
 		Value position_val;
-		std::vector<std::array<Value, NUM_DIRECTIONS>> deep_values;
+		std::vector<std::array<Value, NUM_DIRECTIONS>> deep_values{};
 	};
 
 

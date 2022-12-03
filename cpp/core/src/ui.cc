@@ -11,9 +11,9 @@ namespace c20::ui {
 		game_player = _game_player;
 	}
 
-	void NoopUI::set_position(const commons::Position& pos) {}
+	void NoopUI::set_position(const commons::Position&) {}
 	void NoopUI::game_over() {}
-	void NoopUI::analysis_msg(const Analysis& anal, message_key key) {}
+	void NoopUI::analysis_msg(const Analysis&, message_key) {}
 
 
 

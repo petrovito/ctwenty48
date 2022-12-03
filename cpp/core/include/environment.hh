@@ -190,6 +190,8 @@ namespace c20::deps {
 						mcts->params = mcts_params;
 						mcts->init();
 						break;
+					default:
+						break;
 				}
 				switch (specs.node_eval) {
 					case Rollout:
@@ -197,6 +199,8 @@ namespace c20::deps {
 						break;
 					case Static:
 						static_eval->params = mcts_params;
+						break;
+					default:
 						break;
 				}
 

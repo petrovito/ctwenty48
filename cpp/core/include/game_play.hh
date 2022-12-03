@@ -23,8 +23,8 @@ namespace c20::core {
 	class GamePlayer 
 	{
 		private:
-			selectors::MoveSelector* move_selector;
 			ui::UIHandler* ui;
+			selectors::MoveSelector* move_selector;
 
 			std::unique_ptr<Game> current_game;
 			std::atomic<GamePlayerState> game_state;

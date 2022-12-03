@@ -6,7 +6,7 @@
 namespace c20::selectors {
 
 
-	Analysis MoveSelector::analyze(const Position& _pos)
+	Analysis MoveSelector::analyze(const Position&)
 	{
 		return Analysis{.position_val=0};
 	}

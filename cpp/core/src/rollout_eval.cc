@@ -13,8 +13,8 @@ using namespace oneapi::tbb;
 namespace c20::search {
 
 	RolloutEvaluator::RolloutEvaluator() :
-		gen(boost::random::mt19937(static_cast<std::uint32_t>(std::time(0)))),
-		uniform(0, NUM_DIRECTIONS -1)
+		uniform(0, NUM_DIRECTIONS -1),
+		gen(boost::random::mt19937(static_cast<std::uint32_t>(std::time(0))))
 	{  }
 
 
@@ -63,7 +63,7 @@ namespace c20::search {
 		auto min_eval = *std::min_element(evals.begin(), evals.end());
 		auto diff = max_eval - min_eval;
 
-		for (int i = 0; i < evals.size(); i++)
+		for (unsigned i = 0; i < evals.size(); i++)
 		{
 			nodes[i]->dist = NodeDistribution::const_dist((evals[i] - min_eval) / diff);
 		}

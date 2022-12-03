@@ -53,7 +53,7 @@ using namespace std;
 			int diffs = 0;
 			std::string expected = "1,2,3,4,0,0,0,0,4,3,2,1,7,8,9,5,1,1,2\n"
 				"0,0,0,0,1,2,3,4,4,3,2,1,7,8,9,5,2,0,2\n";
-			for (int i = 0; i < expected.size(); i++)
+			for (unsigned i = 0; i < expected.size(); i++)
 			{
 				if (expected[i] != buffer[i]) diffs++;
 			}

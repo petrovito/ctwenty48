@@ -15,13 +15,13 @@ namespace c20::search {
 
 
 	MonteCarloEstimator::MonteCarloEstimator() :
+		uniform(0, NUM_DIRECTIONS -1),
 		gens{
 			boost::random::mt19937(static_cast<std::uint32_t>(std::time(0))),
 			boost::random::mt19937(static_cast<std::uint32_t>(std::time(0))),
 			boost::random::mt19937(static_cast<std::uint32_t>(std::time(0))),
 			boost::random::mt19937(static_cast<std::uint32_t>(std::time(0))),
-		},
-		uniform(0, NUM_DIRECTIONS -1)
+		}
 	{  }
 
 

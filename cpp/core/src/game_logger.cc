@@ -35,7 +35,7 @@ namespace c20::misc {
 		auto writer = csv::make_csv_writer(ostream);
 		auto iterator = game.history();
 		auto pos = iterator.begin();
-		for (int i = 0; i < iterator.size(); i++, pos++)
+		for (unsigned i = 0; i < iterator.size(); i++, pos++)
 		{
 			std::vector<int> row;
 			//append position table

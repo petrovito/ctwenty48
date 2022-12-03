@@ -20,11 +20,11 @@ namespace c20::cnn {
 	}
 
 	void NeuralEvaluator::batch_evaluate(
-			std::vector<search::UserNode*>& nodes, search::TimeSpan time)
+			std::vector<search::UserNode*>& nodes, search::TimeSpan)
 	{
 		auto input_tensor = tensor_from_pos(nodes);
 		auto output = model(input_tensor).get_data<float>();
-		for (int i = 0; i < nodes.size(); i++)
+		for (uint32_t i = 0; i < nodes.size(); i++)
 		{
 			auto eval = output[i];
 			nodes[i]->dist = 

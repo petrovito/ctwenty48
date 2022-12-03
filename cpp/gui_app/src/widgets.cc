@@ -266,10 +266,10 @@ namespace c20::gui {
 	void AnalyzePanel::update_texts(const Analysis& anal)
 	{
 		zero_label.caption(fmt::format("{:.4}", anal.position_val));
-		for (int i = 0; i < anal.deep_values.size(); i++) {
+		for (unsigned i = 0; i < anal.deep_values.size(); i++) {
 			for (int j = 0; j < 4; j++) {
 				table[i][j]->caption(fmt::format("{:.4}", anal.deep_values[i][j]));
-				auto weight = anal.deep_values[i][j] / BIN_COUNT;
+				/* auto weight = anal.deep_values[i][j] / BIN_COUNT; */
 				/* table[i][j]->bgcolor(nana::color((int)(255*weight),(int)(255*weight),(int)(255*weight))); */
 			}
 		}

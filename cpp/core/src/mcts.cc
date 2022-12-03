@@ -162,8 +162,8 @@ namespace c20::mcts {
 				if (pos[i] == 0) zeros.push_back(i);
 			}
 			auto dist = number_popper->dist_from(pos, zeros);
-			double dist_probs[dist.size()];
-			for (int i = 0; i < dist.size(); i++) {
+			double dist_probs[NUM_SQUARES *2];
+			for (unsigned i = 0; i < dist.size(); i++) {
 				auto& [p, child_pos] = dist[i];
 				dist_probs[i] = p;
 				auto child_node = node_container->push_usernode(child_pos);
