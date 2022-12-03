@@ -55,7 +55,7 @@ namespace c20::search {
 
 	path_attr StaticPositionEval::find_main_path(const Position& pos) 
 	{
-		path_attr main_path{0, 0, 1};
+		path_attr main_path{0, 0, 1, {}};
 		auto highests = pos.highest(5);
 		auto first = highests[0];
 		if (is_corner(first.idx)) {
@@ -64,22 +64,26 @@ namespace c20::search {
 			if (are_neighbours(first.idx, second.idx)) {
 				//two highest next to each other
 				main_path.len++;
+				main_path.diffs.push_back(first.num - second.num);
 				auto idx_diff = second.idx - first.idx;
 				auto third = highests[2];
 				auto third_idx = second.idx + idx_diff;
 				if (third.num == pos[third_idx]) {
 					//three highest next to each other
 					main_path.len++;
+					main_path.diffs.push_back(second.num - third.num);
 					auto fourth = highests[3];
 					auto fourth_idx = second.idx + 2* idx_diff;
 					if (fourth.num == pos[fourth_idx]) {
 						//four highest next to each other
 						main_path.len++;
+						main_path.diffs.push_back(third.num - fourth.num);
 						auto fifth_idx = find_fifth_idx(fourth_idx, idx_diff);
 						auto fifth = highests[4];
 						if (fifth.num == pos[fifth_idx]) {
 							//fifth highest next to each other
 							main_path.len++;
+							main_path.diffs.push_back(fourth.num - fifth.num);
 						} else { //four in path
 							main_path.breaker_num = pos[fifth_idx];
 							main_path.optimal_num = fifth.num;
@@ -108,6 +112,11 @@ namespace c20::search {
 		score *= 1 + params.breaker_mult * 
 			std::pow( (double) (main_path.breaker_num) / main_path.optimal_num,
 					params.breaker_pow);
+		for (int i = 0; i < main_path.len -1; i++)
+			score *= 1 + (params.path_diff_mults[i] * 
+					std::pow(
+						(double) (std::max(0, 4-main_path.diffs[i])) / 4,
+						params.path_diff_pow));
 		//TODO incentivize joining numbers
 		return score;
 	}

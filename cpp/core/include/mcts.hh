@@ -101,6 +101,8 @@ namespace c20::mcts {
 		double rollout_corner_weight = 2.;
 		//scoring
 		std::vector<double> main_path_mults{1,2,4,8,26,40};
+		std::vector<double> path_diff_mults{2,2,2,2};
+		double path_diff_pow = 2.;
 		double breaker_mult = 2.7;
 		double breaker_pow = 2.;
 	};

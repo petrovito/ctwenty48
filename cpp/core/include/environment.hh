@@ -37,6 +37,8 @@ namespace YAML {
 			SET_NODE_double(rollout_corner_weight);
 			//scoring
 			SET_NODE_vector(main_path_mults);
+			SET_NODE_vector(path_diff_mults);
+			SET_NODE_double(path_diff_pow);
 			SET_NODE_double(breaker_mult);
 			SET_NODE_double(breaker_pow);
 			return true;
