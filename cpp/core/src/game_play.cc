@@ -76,9 +76,9 @@ namespace c20::core {
 	{
 		exchange_or_throw(game_state, IDLE, GAME_STARTED);
 		spdlog::info("Starting game.");
-		/* current_game = std::unique_ptr<Game>(Game::start_game()); */
-		current_game = std::unique_ptr<Game>(new Game(Position::from_str(
-						"9999|9999|9999|9000")));
+		current_game = std::unique_ptr<Game>(Game::start_game());
+		/* current_game = std::unique_ptr<Game>(new Game(Position::from_str( */
+		/* 				"9999|9999|9999|9000"))); */
 		set_position_for_handlers(*(current_game->current_position()));
 	}
 

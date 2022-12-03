@@ -186,6 +186,7 @@ namespace c20::deps {
 						mcts->node_container = mcts_nodes.get();
 						mcts->node_eval = node_eval;
 						mcts->params = mcts_params;
+						mcts->init();
 						break;
 				}
 				switch (specs.node_eval) {

@@ -129,11 +129,13 @@ namespace c20::mcts {
 			double max_eval;
 
 			MctsHyperParams params;
-			
+
+			std::vector<disc_dist> dist_cache;
 
 			template<typename UiEnv> friend class deps::Environment;
 		public:
 			MCTS();
+			void init(); //to call after wiring beans
 			UserMove make_move() override;
 	};
 

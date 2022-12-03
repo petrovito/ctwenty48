@@ -102,5 +102,16 @@ namespace c20::commons {
 		ASSERT_EQ(NUM_SQUARES -2, game->current_position() -> num_zeros());
 	}
 	
+	TEST(PositionTest, Highests)
+	{
+		auto pos = Position::from_str("1234|0000|0000|1111");
+		ASSERT_EQ(4, pos.highest());
+		ASSERT_EQ(3, pos.highest_idx());
+		
+		pos = Position::from_str("4234|0000|0000|1111");
+		ASSERT_EQ(4, pos.highest());
+		ASSERT_TRUE(3 == pos.highest_idx() || 0 == pos.highest_idx());
+	}
+	
 }
 

@@ -80,7 +80,25 @@ namespace c20::mcts {
 	MCTS::MCTS() : 
 		gen(static_cast<std::uint32_t>(std::time(0))),
 		uniform(0,3)
-	{}
+	{ }
+
+
+	void MCTS::init()
+	{
+		uint8_t mask = 0b1111;
+		for (uint8_t subset = 0; subset < mask; subset++) {
+			std::vector<double> weights;
+			for (MoveDirection dir: directions) {
+				if (subset & (1 << dir)) {
+					weights.push_back(params.rollout_corner_weight);
+				} else {
+					weights.push_back(1.);
+				}
+			}
+			dist_cache.push_back({weights.begin(), weights.end()});
+		}
+	}
+
 
 	Path MCTS::select()
 	{
@@ -224,17 +242,17 @@ namespace c20::mcts {
 		{
 			if (pos.is_over()) break;
 			//make random move
-			double weights[] {1,1,1,1};
-			auto highest_idx = pos.highest(1)[0].idx;
+			uint8_t weight_idx = 0;
+			auto highest_idx = pos.highest_idx();
 			if (highest_idx == 0 || highest_idx == 3)
-				weights[UP] = params.rollout_corner_weight;
+				weight_idx |= 1 << UP;
 			if (highest_idx == 15 || highest_idx == 3)
-				weights[RIGHT] = params.rollout_corner_weight;
+				weight_idx |= 1 << RIGHT;
 			if (highest_idx == 0 || highest_idx == 12)
-				weights[LEFT] = params.rollout_corner_weight;
+				weight_idx |= 1 << LEFT;
 			if (highest_idx == 12 || highest_idx == 15)
-				weights[DOWN] = params.rollout_corner_weight;
-			disc_dist dist(weights, weights+4);
+				weight_idx |= 1 << DOWN;
+			disc_dist& dist = dist_cache[weight_idx];
 			while (1)
 			{
 				int dir_num = dist(gen);
@@ -256,7 +274,6 @@ namespace c20::mcts {
 
 	void MCTS::back_propagate(Path& path, uint32_t move_count)
 	{
-		max_eval = -1;
 		double highest_score = -1.;
 		
 		for (int i = path.size() -1; i >= 0; i--)
@@ -283,6 +300,7 @@ namespace c20::mcts {
 	{
 		node_container->reset(pos_);
 		const_C = 10000;
+		max_eval = -1;
 
 		int big_nums = pos_.count_above(4) + pos_.count_above(6);
 		int time = pos_.power_sum() / 1000 + big_nums + 1;

@@ -13,7 +13,8 @@ int main()
 
 	c20::deps::EnvSpecs specs{
 		.move_selector=c20::deps::MCTS,
-		.node_eval=c20::deps::Static
+		.node_eval=c20::deps::Static,
+		.mcts_param_path="../mcts_params.yaml",
 		/* .node_eval=c20::deps::Rollout */
 		/* .nn_model_path = "neural-net/models/synth_2/" */
 	};

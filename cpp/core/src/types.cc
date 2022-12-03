@@ -3,7 +3,9 @@
 #include <boost/random/discrete_distribution.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <iterator>
 #include <tuple>
 #include <types.hh>
 
@@ -225,6 +227,14 @@ namespace c20::commons {
 	Number Position::highest() const
 	{
 		return *std::max_element((Number*)table, (Number*)table +NUM_SQUARES);
+	}
+
+	uint8_t Position::highest_idx() const
+	{
+		return std::distance((Number*) table,
+				std::max_element(
+					(Number*)table, (Number*)table +NUM_SQUARES)
+				);
 	}
 
 	std::vector<NumPos> Position::highest(int count) const
