@@ -1,2 +1,3 @@
-const_C_mult: 0.1
+const_C_mult: 1.5
+decline_pow: 1.1
 

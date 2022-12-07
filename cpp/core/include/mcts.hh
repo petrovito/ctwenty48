@@ -1,13 +1,36 @@
 #pragma once
 
+#include "pos_score.hh"
 #include "types.hh"
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
+#include <boost/smart_ptr/detail/spinlock_gcc_atomic.hpp>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <selectors.hh>
 #include <search.hh>
 #include <vector>
+
+using boost::detail::spinlock;
+/* typedef std::mutex spinlock; */
+/* struct spinlock { */
+/* 	bool locked = false; */
+/* 	inline void lock() { */
+/* 		if (locked) { */
+/* 			locked = true; */
+/* 		} else { */
+/* 			locked = true; */
+/* 		} */
+/* 	} */ 
+/* 	inline void unlock() { */
+/* 		if (!locked) { */
+/* 			locked = false; */
+/* 		} */
+/* 		locked = false; */
+/* 	} */
+
+/* }; */
 
 namespace c20::mcts {
 	
@@ -28,8 +51,11 @@ namespace c20::mcts {
 		bool leef_node = true;
 		Value eval = 0;
 
+		spinlock lock = {};
+
 		Node() = default;
 		Node(const Position&, bool);
+		Node& operator=(Node&&);
 		virtual ~Node() = default;
 	};
 
@@ -77,6 +103,9 @@ namespace c20::mcts {
 			UserNode *root;
 			int usernode_idx, randomnode_idx;
 
+			spinlock usernode_lock = {};
+			spinlock randomnode_lock = {};
+
 			std::unordered_map<Position, UserNode*, PositionHasher> usernode_map;
 			std::unordered_map<Position, RandomNode*, PositionHasher> randomnode_map;
 
@@ -93,18 +122,12 @@ namespace c20::mcts {
 
 	typedef std::vector<Node*> Path;
 
-	struct MctsHyperParams
+	using boost::random::mt19937;
+
+	struct ExecutionContext
 	{
-		//mcts ops
-		double const_C_mult = std::sqrt(2);
-		double decline_pow = .75;
-		double rollout_corner_weight = 2.;
-		//scoring
-		std::vector<double> main_path_mults{1,2,4,8,26,40};
-		std::vector<double> path_diff_mults{2,2,2,2};
-		double path_diff_pow = 2.;
-		double breaker_mult = 2.7;
-		double breaker_pow = 2.;
+		NumberPopper number_popper;
+		mt19937 gen;
 	};
 
 
@@ -113,26 +136,30 @@ namespace c20::mcts {
 		private:
 			NodeContainer* node_container;
 			NumberPopper* number_popper;
-			search::NodeEvaluator* node_eval;
-			boost::random::mt19937 gen;
+			search::StaticPositionEval* node_eval;
 			boost::random::uniform_int_distribution<> uniform;
+			std::vector<disc_dist> dist_cache;
+			std::vector<ExecutionContext> contexts;
+			/* ExecutionContext context; */
 
-			RandomNode* choose_child(UserNode*);
-			UserNode* choose_child(RandomNode*);
-			uint32_t rollout_pos(Position&, 
-					NumberPopper&, boost::random::mt19937&);
-
-			Path select();
-			Node*  expand(Path&);
-			uint32_t rollout(Node*);
-			void back_propagate(Path&, uint32_t);
-
+			spinlock const_C_lock = {};
 			double const_C;
 			double max_eval;
 
-			MctsHyperParams params;
+			search::MctsHyperParams params;
 
-			std::vector<disc_dist> dist_cache;
+
+			RandomNode* choose_child(UserNode*);
+			UserNode* choose_child(ExecutionContext&, RandomNode*);
+			uint32_t rollout_pos(ExecutionContext&, Position&);
+
+			Path select(ExecutionContext&);
+			Node*  expand(ExecutionContext&, Path&);
+			uint32_t rollout(ExecutionContext&, Node*);
+			void back_propagate(Path&, uint32_t);
+
+			void mcts_loop(ExecutionContext&, int);
+
 
 			template<typename UiEnv> friend class deps::Environment;
 		public:

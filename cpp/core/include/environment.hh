@@ -9,6 +9,7 @@
 #include "ui.hh"
 #include <memory>
 #include <spdlog/spdlog.h>
+#include <stdexcept>
 #include <types.hh>
 #include <cnn.hh>
 #include <yaml-cpp/node/parse.h>
@@ -28,9 +29,9 @@
 
 namespace YAML {
 	template <>
-	struct convert<c20::mcts::MctsHyperParams> 
+	struct convert<c20::search::MctsHyperParams> 
 	{
-		static bool decode(const Node& node, c20::mcts::MctsHyperParams& params) 
+		static bool decode(const Node& node, c20::search::MctsHyperParams& params) 
 		{
 			SET_NODE_double(const_C_mult);
 			SET_NODE_double(decline_pow);
@@ -97,7 +98,7 @@ namespace c20::deps {
 
 			std::unique_ptr<mcts::MCTS> mcts;
 			std::unique_ptr<mcts::NodeContainer> mcts_nodes;
-			mcts::MctsHyperParams mcts_params;
+			search::MctsHyperParams mcts_params;
 
 			search::NodeEvaluator* node_eval;
 			std::unique_ptr<search::RolloutEvaluator> rollout_eval;
@@ -137,6 +138,8 @@ namespace c20::deps {
 						mcts = std::make_unique<mcts::MCTS>();
 						mcts_nodes = std::make_unique<mcts::NodeContainer>();
 						move_selector = mcts.get();
+						if (specs.node_eval != Static)
+							throw std::runtime_error("mcts has to have static eval");
 						break;
 				}
 				switch (specs.node_eval) {
@@ -161,7 +164,7 @@ namespace c20::deps {
 					spdlog::info("Loading hyper params from file: {}", 
 							specs.mcts_param_path);
 					auto yaml_config = YAML::LoadFile(specs.mcts_param_path);
-					mcts_params = yaml_config.as<mcts::MctsHyperParams>();
+					mcts_params = yaml_config.as<search::MctsHyperParams>();
 				}
 
 				ui_env.instantiate_beans();
@@ -186,7 +189,7 @@ namespace c20::deps {
 					case MCTS:
 						mcts->number_popper = number_popper.get();
 						mcts->node_container = mcts_nodes.get();
-						mcts->node_eval = node_eval;
+						mcts->node_eval = static_eval.get();
 						mcts->params = mcts_params;
 						mcts->init();
 						break;
