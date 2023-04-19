@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:22.10
 
 RUN apt update && \
 	apt install -y gcc-11 python3 python3-pip git make cmake pkg-config \
